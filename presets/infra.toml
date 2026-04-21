@@ -1,0 +1,24 @@
+# Infrastructure preset — Claude Code built-ins for IaC / DevOps work.
+
+extends = ["base"]
+
+agents = [
+  "devops-engineer",
+  "terraform-engineer",
+  "kubernetes-specialist",
+  "security-engineer",
+]
+
+fetch = []
+skills = []
+
+[detect]
+any_files = [
+  "Dockerfile",
+  "docker-compose.yml",
+  "docker-compose.yaml",
+  "**/*.tf",
+  ".github/workflows/*.yml",
+  "k8s/**/*.yaml",
+  "charts/**/*.yaml",
+]

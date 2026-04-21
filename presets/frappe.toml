@@ -1,0 +1,18 @@
+# Frappe / ERPNext preset.
+
+extends = ["base"]
+
+agents = [
+  "python-pro",
+  "backend-developer",
+]
+
+fetch = []
+skills = []
+
+[detect]
+files = ["sites/apps.txt", "apps.txt"]
+contains = [
+  { file = "apps.txt", text = "frappe" },
+  { file = "sites/apps.txt", text = "frappe" },
+]

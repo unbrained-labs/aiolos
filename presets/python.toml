@@ -1,0 +1,15 @@
+# Python preset — points at Claude Code's built-in agents that fit this stack.
+
+extends = ["base"]
+
+agents = [
+  "python-pro",
+  "backend-developer",
+]
+
+fetch = []
+skills = []
+
+[detect]
+files = ["pyproject.toml", "requirements.txt", "Pipfile"]
+pyproject_has = ["fastapi", "django", "flask"]

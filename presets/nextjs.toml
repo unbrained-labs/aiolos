@@ -1,0 +1,35 @@
+# Next.js preset — points at Claude Code's built-in agents that fit this stack.
+# Does not ship skill content. Add fetched community skills under [fetch].
+
+extends = ["base"]
+
+agents = [
+  "nextjs-developer",
+  "frontend-developer",
+  "typescript-pro",
+]
+
+fetch = []
+skills = []
+
+# MCP servers from the built-in catalog (modelcontextprotocol/servers). Listed
+# here are strong fits for most Next.js repos. `claude-setup mcp --preset nextjs`
+# writes them into .mcp.json with ${VAR} placeholders.
+mcp = [
+  "github",
+  "postgres",
+]
+
+# Vendor-specific or third-party MCP servers go here as inline definitions —
+# no need to patch the tool. Uncomment to enable.
+#
+# [[mcp_custom]]
+# slug        = "pencil"
+# description = "Pencil — open-source Figma alternative for UI design"
+# command     = "npx"
+# args        = ["-y", "@pencil/mcp"]
+# env         = ["PENCIL_API_KEY"]
+
+[detect]
+files = ["next.config.js", "next.config.mjs", "next.config.ts"]
+package_json_has = ["next"]

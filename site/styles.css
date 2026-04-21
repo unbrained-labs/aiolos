@@ -1,0 +1,404 @@
+/* claude-setup site — editorial, high-contrast, cream paper.
+   Aesthetic reference: threshold-cryptography diagrams, academic monographs.
+   No gradients, no rainbow, no rounded buttons. Just type and paper. */
+
+:root {
+  --paper: #f0ece1;
+  --paper-dim: #e6e1d2;
+  --ink: #141210;
+  --ink-dim: #4a4038;
+  --rule: #141210;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serif: "EB Garamond", "Libre Caslon Text", Georgia, serif;
+  --measure: 40rem;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  padding: 3rem 1.5rem 4rem;
+}
+
+main {
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+article { position: relative; }
+
+/* ── Head ────────────────────────────────────────────────────────────── */
+
+.head {
+  max-width: 44rem;
+  margin: 2rem auto 4rem;
+  text-align: left;
+}
+
+.eyebrow {
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  margin: 0 0 1.5rem;
+  font-variant: small-caps;
+}
+
+.eyebrow strong {
+  font-weight: 600;
+  color: var(--ink);
+  font-variant: normal;
+  letter-spacing: 0;
+  font-size: 1.05rem;
+}
+
+.eyebrow em {
+  font-style: italic;
+  font-variant: normal;
+}
+
+.eyebrow-sep {
+  margin: 0 0.4rem;
+  color: var(--ink-dim);
+}
+
+h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 3.4rem;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  margin: 0 0 1.25rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  margin: 0 0 2rem;
+}
+
+.subtitle strong { font-weight: 600; font-style: italic; }
+
+.cta {
+  margin-top: 1.5rem;
+}
+
+.install {
+  display: inline-block;
+  padding: 1rem 1.3rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.cta-meta {
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+.cta-meta a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.sep {
+  margin: 0 0.4rem;
+  color: var(--ink-dim);
+}
+
+/* ── Diagram ─────────────────────────────────────────────────────────── */
+
+.diagram-section {
+  margin: 4rem auto 6rem;
+  max-width: 62rem;
+  text-align: center;
+}
+
+.diagram {
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+  display: block;
+}
+
+.diagram .label {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  font-size: 14px;
+  fill: var(--ink);
+}
+
+.diagram .label-sm {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 14px;
+  fill: var(--ink);
+}
+
+.diagram .annotation {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  fill: var(--ink-dim);
+}
+
+.diagram .annotation-sm {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11px;
+  fill: var(--ink-dim);
+}
+
+.diagram .mono-sm {
+  font-family: var(--mono);
+  font-size: 12px;
+  fill: var(--ink);
+}
+
+.caption {
+  font-style: italic;
+  color: var(--ink-dim);
+  font-size: 0.95rem;
+  max-width: var(--measure);
+  margin: 1.5rem auto 0;
+  text-align: left;
+}
+
+.caption em {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* ── Prose sections ──────────────────────────────────────────────────── */
+
+.prose {
+  max-width: var(--measure);
+  margin: 4rem auto;
+}
+
+h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.6rem;
+  margin: 0 0 1.25rem;
+  letter-spacing: 0;
+  line-height: 1.25;
+}
+
+.diagram-heading {
+  max-width: var(--measure);
+  margin: 0 auto 2rem;
+  text-align: left;
+}
+
+p { margin: 0 0 1rem; }
+
+em { font-style: italic; }
+
+.prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
+
+/* ── Code blocks ─────────────────────────────────────────────────────── */
+
+pre {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  background: var(--paper-dim);
+  padding: 1.1rem 1.3rem;
+  overflow-x: auto;
+  margin: 1rem 0 1.25rem;
+  line-height: 1.5;
+  border-left: 2px solid var(--ink);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  white-space: pre;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.95em;
+  background: var(--paper-dim);
+  padding: 0 0.25em;
+}
+
+.comment {
+  color: var(--ink-dim);
+  font-style: italic;
+}
+
+.preset {
+  font-size: 0.9rem;
+}
+
+/* ── Definition list: commands ───────────────────────────────────────── */
+
+dl.commands {
+  margin: 1rem 0;
+}
+
+dl.commands dt {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: 1.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ink);
+}
+
+dl.commands dt:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+
+dl.commands dd {
+  margin: 0.35rem 0 0;
+  font-size: 1rem;
+}
+
+/* ── Principles list ─────────────────────────────────────────────────── */
+
+ul.principles {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+ul.principles li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 1.1rem;
+}
+
+ul.principles li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--ink-dim);
+}
+
+ul.principles strong { font-weight: 600; }
+
+/* ── "Not to be confused with" table ─────────────────────────────────── */
+
+dl.vs {
+  margin: 1rem 0;
+}
+
+dl.vs dt {
+  font-weight: 500;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--ink);
+}
+
+dl.vs dt:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+
+dl.vs dt a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+dl.vs dd {
+  margin: 0.3rem 0 0;
+  font-size: 1rem;
+  color: var(--ink-dim);
+}
+
+/* ── Foot ────────────────────────────────────────────────────────────── */
+
+.foot {
+  max-width: var(--measure);
+  margin: 5rem auto 1rem;
+  color: var(--ink-dim);
+  font-size: 0.9rem;
+}
+
+.foot hr {
+  border: 0;
+  border-top: 1px solid var(--ink);
+  margin: 0 0 1rem;
+}
+
+.foot p {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.foot a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+}
+
+.foot-right { font-family: var(--mono); font-size: 0.85rem; }
+
+/* ── Sound toggle ────────────────────────────────────────────────────── */
+
+.sound-toggle {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  user-select: none;
+  z-index: 10;
+}
+
+.sound-toggle:hover { background: var(--paper-dim); }
+
+.sound-toggle[aria-pressed="true"]::before {
+  content: "◉ ";
+  color: var(--ink);
+}
+
+.sound-toggle[aria-pressed="false"]::before {
+  content: "◌ ";
+  color: var(--ink-dim);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+
+@media (max-width: 680px) {
+  html { font-size: 16px; }
+  body { padding: 1.5rem 1rem 3rem; }
+  h1 { font-size: 2.3rem; }
+  .subtitle { font-size: 1.05rem; }
+  .head { margin: 1rem 0 2.5rem; }
+  .diagram-section { margin: 2rem 0 3rem; }
+  pre { font-size: 0.82rem; padding: 0.9rem 1rem; }
+  .install { display: block; }
+  .foot p { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+}
+
+/* ── Selection & focus ───────────────────────────────────────────────── */
+
+::selection { background: var(--ink); color: var(--paper); }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}

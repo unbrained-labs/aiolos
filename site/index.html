@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>aiolos — the routing god for your Claude Code repo</title>
+  <meta name="description" content="aiolos detects your stack, wires MCP servers without touching secrets, and blocks Claude from reading SSH/AWS keys — in 30 seconds, for any repo. Installs as claude-setup.">
+  <meta property="og:title" content="aiolos — one command to make Claude Code fit your repo">
+  <meta property="og:description" content="Routes agents, skills, MCP servers, and harden rules into .claude/ — without shipping content of its own.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23141210'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="beep.js" defer></script>
+</head>
+<body>
+  <main>
+    <article>
+
+      <!-- ── Hero ────────────────────────────────────────────────────── -->
+      <header class="head">
+        <p class="eyebrow"><strong>aiolos</strong> <span class="eyebrow-sep">·</span> <em>keeper of the winds</em></p>
+        <h1>One command to make Claude Code fit your repo.</h1>
+        <p class="subtitle">
+          <strong>aiolos</strong> reads your stack, turns on the agents that match it, wires your MCP servers without ever touching your secrets, and lays down a deny-list so Claude can't <code>cat ~/.ssh/id_rsa</code> on a bad day. About 30 seconds per repo.
+        </p>
+
+        <div class="cta">
+          <pre class="install"><code>uv tool install claude-setup
+claude-setup wizard</code></pre>
+          <p class="cta-meta">
+            Works on fresh Next.js apps and ten-year-old monorepos.
+            <span class="sep">·</span>
+            macOS &amp; Linux, Python 3.11+.
+            <span class="sep">·</span>
+            <a href="https://github.com/unbrained-labs/aiolos">source</a>
+          </p>
+        </div>
+      </header>
+
+      <!-- ── The problem ─────────────────────────────────────────────── -->
+      <section class="prose">
+        <h2>The first time you opened a repo with Claude Code…</h2>
+        <p>
+          You pasted an API key into <code>.mcp.json</code> to test a server, then committed it by accident. You watched the assistant run a <code>gh</code> command on your main branch. Your teammate's <code>.claude/</code> looked nothing like yours and neither of you remembered why. You tried to harden <code>settings.json</code>, realised the deny patterns are harder than they look, and shipped without them.
+        </p>
+        <p>
+          <em>aiolos</em> does the 30-minute chore of wiring a new Claude Code project so you don't.
+        </p>
+      </section>
+
+      <!-- ── Diagram (the payoff) ────────────────────────────────────── -->
+      <section class="diagram-section">
+        <h2 class="diagram-heading">What runs when you type <code>claude-setup wizard</code></h2>
+
+        <svg class="diagram" viewBox="0 0 960 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow: repo to .claude via detect, preset, fetch">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <g class="node">
+            <rect x="30" y="150" width="130" height="60" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="95" y="185" text-anchor="middle" class="label">YOUR REPO</text>
+          </g>
+
+          <line x1="160" y1="180" x2="270" y2="180" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <g class="node" transform="translate(340,180)">
+            <circle cx="0"   cy="-36" r="8" fill="currentColor"/>
+            <circle cx="31"  cy="-18" r="8" fill="currentColor"/>
+            <circle cx="31"  cy="18"  r="8" fill="currentColor"/>
+            <circle cx="0"   cy="36"  r="8" fill="currentColor"/>
+            <circle cx="-31" cy="18"  r="8" fill="currentColor"/>
+            <circle cx="-31" cy="-18" r="8" fill="currentColor"/>
+            <text x="0" y="80" text-anchor="middle" class="label">PRESET MATCH</text>
+            <text x="0" y="98" text-anchor="middle" class="annotation">(next.js, python, infra…)</text>
+          </g>
+
+          <line x1="395" y1="180" x2="490" y2="180" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <g class="node">
+            <circle cx="540" cy="180" r="28" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <text x="540" y="185" text-anchor="middle" class="mono-sm">.claude/</text>
+          </g>
+
+          <path d="M 568 180 L 720 180" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M 720 60 L 720 300"  fill="none" stroke="currentColor" stroke-width="1.5"/>
+
+          <line x1="720" y1="60"  x2="770" y2="60"  stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="720" y1="120" x2="770" y2="120" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="720" y1="240" x2="770" y2="240" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <line x1="720" y1="300" x2="770" y2="300" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <g transform="translate(790,60)">
+            <circle cx="0"  cy="0" r="6" fill="currentColor"/>
+            <circle cx="14" cy="0" r="6" fill="currentColor"/>
+            <circle cx="28" cy="0" r="6" fill="currentColor"/>
+            <text x="14" y="24" text-anchor="middle" class="label-sm">Agents on</text>
+            <text x="14" y="40" text-anchor="middle" class="annotation-sm">built-in, by name</text>
+          </g>
+
+          <g transform="translate(790,120)">
+            <circle cx="0"  cy="0" r="6" fill="currentColor"/>
+            <circle cx="14" cy="0" r="6" fill="currentColor"/>
+            <circle cx="28" cy="0" r="6" fill="currentColor"/>
+            <text x="14" y="24" text-anchor="middle" class="label-sm">Skills fetched</text>
+            <text x="14" y="40" text-anchor="middle" class="annotation-sm">from trusted authors</text>
+          </g>
+
+          <g transform="translate(790,240)">
+            <circle cx="0"  cy="0" r="6" fill="currentColor"/>
+            <circle cx="14" cy="0" r="6" fill="currentColor"/>
+            <circle cx="28" cy="0" r="6" fill="currentColor"/>
+            <text x="14" y="24" text-anchor="middle" class="label-sm">MCP wired</text>
+            <text x="14" y="40" text-anchor="middle" class="annotation-sm">secrets stay in .env</text>
+          </g>
+
+          <g transform="translate(790,300)">
+            <circle cx="0"  cy="0" r="6" fill="currentColor"/>
+            <circle cx="14" cy="0" r="6" fill="currentColor"/>
+            <circle cx="28" cy="0" r="6" fill="currentColor"/>
+            <text x="14" y="24" text-anchor="middle" class="label-sm">Hardened</text>
+            <text x="14" y="40" text-anchor="middle" class="annotation-sm">deny-rules + hooks</text>
+          </g>
+        </svg>
+
+        <p class="caption">
+          The repo is scanned, matched to one or more presets, and <code>.claude/</code> is wired in four ways. The tool ships plumbing. The <em>content</em> — prompts, agent bodies, skill markdown — comes from Anthropic's built-ins and authors you explicitly trust.
+        </p>
+      </section>
+
+      <!-- ── What it writes ──────────────────────────────────────────── -->
+      <section class="prose">
+        <h2>What it writes into your repo</h2>
+        <p>A Next.js repo with Postgres, after <code>claude-setup wizard</code>:</p>
+
+        <pre><code><span class="comment"># .mcp.json — committed, only ${VAR} placeholders</span>
+{
+  "mcpServers": {
+    "github":   { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"],
+                  "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}" } },
+    "postgres": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres",
+                                              "${DATABASE_URL}"] }
+  }
+}
+
+<span class="comment"># .env.claude.example — committed, documents what the team needs</span>
+GITHUB_PERSONAL_ACCESS_TOKEN=
+DATABASE_URL=
+
+<span class="comment"># .gitignore — we add this line, so real values never slip in</span>
+.env.claude
+
+<span class="comment"># .claude/settings.json — deny-rules you'd otherwise write by hand</span>
+{ "permissions": { "deny": [
+  "Read(~/.ssh/**)", "Read(~/.aws/**)", "Read(.env)", "Read(.env.*)",
+  "Bash(cat ~/.ssh/**)", "Bash(security find-generic-password*)",
+  "Bash(git push --force *)", "Bash(terraform destroy *)"
+]}}</code></pre>
+
+        <p>Re-run any time; the managed blocks merge cleanly and your own rules survive.</p>
+      </section>
+
+      <!-- ── Commands ────────────────────────────────────────────────── -->
+      <section class="prose">
+        <h2>The small set of commands</h2>
+        <dl class="commands">
+          <dt>wizard</dt>
+          <dd>Interactive, one-shot. Runs <em>init</em>, offers <em>mcp</em>, <em>harden</em>, and <em>tools</em> in sequence. Start here.</dd>
+
+          <dt>init</dt>
+          <dd>Scans the repo, picks the matching preset(s), activates the built-in Anthropic agents those presets reference (<code>typescript-pro</code>, <code>nextjs-developer</code>, <code>python-pro</code>, …). Monorepo-aware: if Python and Next.js both match, both activate.</dd>
+
+          <dt>mcp</dt>
+          <dd>Writes <code>.mcp.json</code> with <code>${VAR}</code> references, a committed <code>.env.claude.example</code>, and a <code>.gitignore</code> entry for the local <code>.env.claude</code>. Secrets never enter git.</dd>
+
+          <dt>harden</dt>
+          <dd>Baseline <code>permissions.deny</code> rules in <code>.claude/settings.json</code> — SSH, AWS, GCP, GPG, kubeconfig, <code>.env*</code>, macOS Keychain. Optional hooks: refuse edits to <code>.env*</code>, pause on <code>--production</code>, ding when a turn finishes.</dd>
+
+          <dt>tools</dt>
+          <dd>Scans <code>PATH</code> for authenticated CLIs (<code>gh</code>, <code>flyctl</code>, <code>neonctl</code>, <code>wrangler</code>…) and scaffolds a wrapper <code>SKILL.md</code> you can fill in. You have the CLI authenticated; Claude might as well use it.</dd>
+
+          <dt>new-skill</dt>
+          <dd>Scaffolds a <code>SKILL.md</code> with the things people forget: single-line description, Prettier guard, the right frontmatter keys. The body is yours.</dd>
+
+          <dt>lint · audit · doctor</dt>
+          <dd>Sanity checks for your personal skill library. Use when something stops working.</dd>
+        </dl>
+      </section>
+
+      <!-- ── Positioning ─────────────────────────────────────────────── -->
+      <section class="prose">
+        <h2>Not to be confused with</h2>
+        <dl class="vs">
+          <dt>Claude Code's built-in <code>/init</code></dt>
+          <dd>Writes a <code>CLAUDE.md</code>. We wire agents, MCP, secrets, and deny-rules. Use both; they don't overlap.</dd>
+
+          <dt><a href="https://github.com/dyoshikawa/rulesync">rulesync</a></dt>
+          <dd>Syncs rule files across Cursor, Codex, Copilot, Claude. We're Claude-Code-only and configure runtime, not just rules. If you use multiple assistants, use rulesync too.</dd>
+
+          <dt><a href="https://github.com/obra/superpowers">obra/superpowers</a>, skill marketplaces</dt>
+          <dd>Ship opinionated skill content. We ship zero. Point us at any marketplace via <code>trust.toml</code> and we'll fetch from it.</dd>
+        </dl>
+      </section>
+
+      <!-- ── What we won't do ────────────────────────────────────────── -->
+      <section class="prose">
+        <h2>What aiolos deliberately doesn't do</h2>
+        <p>This is plumbing. The pipes are ours; the water is yours and the community's.</p>
+        <ul class="principles">
+          <li>
+            <strong>It doesn't write your skills for you.</strong>
+            <code>new-skill</code> gives you a scaffold with the right shape and gets out of the way. The body is yours because only you know your codebase.
+          </li>
+          <li>
+            <strong>It doesn't re-implement Anthropic's built-in agents.</strong>
+            If Claude Code already ships <code>typescript-pro</code>, we reference it by name. One source of truth, upgraded when Anthropic upgrades it.
+          </li>
+          <li>
+            <strong>It doesn't touch your secrets.</strong>
+            <code>.mcp.json</code> only holds <code>${VAR}</code> references. Real values live in <code>.env.claude</code>, gitignored before you can commit by accident. You get <code>.env.claude.example</code> to share with the team.
+          </li>
+          <li>
+            <strong>It isn't a security audit.</strong>
+            The deny-list stops the obvious footguns — SSH keys, cloud creds, keychain, <code>.env*</code>. If you're shipping to users, that's table stakes, not a substitute for a real review.
+          </li>
+        </ul>
+      </section>
+
+      <!-- ── Footer ──────────────────────────────────────────────────── -->
+      <footer class="foot">
+        <hr>
+        <p>
+          <span class="foot-left">aiolos · installs as <code>claude-setup</code> · MIT</span>
+          <span class="foot-right">
+            <a href="https://github.com/unbrained-labs/aiolos">source</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/unbrained-labs/aiolos/issues">issues</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/unbrained-labs/aiolos/blob/main/src/claude_setup/harden.py">harden rules</a>
+          </span>
+        </p>
+      </footer>
+
+    </article>
+  </main>
+</body>
+</html>
