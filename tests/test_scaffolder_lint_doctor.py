@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.doctor import run_doctor
-from claude_setup.lint import lint_skill
-from claude_setup.scaffolder import scaffold_agent, scaffold_skill, validate_description
+from aiolos.doctor import run_doctor
+from aiolos.lint import lint_skill
+from aiolos.scaffolder import scaffold_agent, scaffold_skill, validate_description
 
 
 # ── scaffolder ────────────────────────────────────────────────────────────────
@@ -151,7 +151,7 @@ def test_cli_init_one_shot(tmp_path: Path, library: Path) -> None:
     env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
 
     result = _run(
-        [sys.executable, "-m", "claude_setup.cli", "init",
+        [sys.executable, "-m", "aiolos.cli", "init",
          "--project", str(project), "--json"],
         env=env,
     )
@@ -173,7 +173,7 @@ def test_cli_init_falls_back_to_base(tmp_path: Path, library: Path) -> None:
     env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
 
     result = _run(
-        [sys.executable, "-m", "claude_setup.cli", "init",
+        [sys.executable, "-m", "aiolos.cli", "init",
          "--project", str(project), "--json"],
         env=env,
     )

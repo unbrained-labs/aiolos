@@ -5,7 +5,7 @@
 # It installs the /setup skill globally so Claude Code can take over from there.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/<you>/claude-setup/main/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/<you>/aiolos/main/bootstrap.sh | bash
 #   or locally:
 #   ./bootstrap.sh [--library PATH] [--copy]
 
@@ -59,8 +59,8 @@ require node  && success "node $(node --version)" || warn "node not found — sk
 require npx   && success "npx found"              || true
 require git   && success "git found"              || warn "git not found"
 
-if ! command -v claude-setup &>/dev/null; then
-  warn "claude-setup CLI not found"
+if ! command -v aiolos &>/dev/null; then
+  warn "aiolos CLI not found"
   warn "Install it with:   uv tool install .    (from this repo)"
   warn "Or:                pip install --user ."
   warn "Continuing anyway to set up library structure..."
@@ -92,7 +92,7 @@ mkdir -p "$GLOBAL_SKILLS_DIR"
 
 if [[ ! -d "$SKILL_SOURCE" ]]; then
   warn "Skill source not found at $SKILL_SOURCE"
-  warn "Are you running this from the claude-setup repo root?"
+  warn "Are you running this from the aiolos repo root?"
   exit 1
 fi
 
@@ -121,10 +121,10 @@ fi
 
 # ── Seed presets ──────────────────────────────────────────────────────────────
 #
-# claude-setup does not ship skill or agent content. We seed presets only —
+# aiolos does not ship skill or agent content. We seed presets only —
 # each preset points at Claude Code's built-in agents by name and optionally
 # lists community skills to fetch from trusted sources (see trust.toml).
-# Populate your own library with `claude-setup fetch <owner/repo> --skill <name>`.
+# Populate your own library with `aiolos fetch <owner/repo> --skill <name>`.
 
 header "Seeding presets"
 

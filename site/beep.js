@@ -6,7 +6,7 @@
 // because browsers block audio until a user gesture.
 
 (() => {
-  const KEY = "claude-setup:beep";
+  const KEY = "aiolos:beep";
   let enabled = localStorage.getItem(KEY) === "on";
   let ctx = null;
 

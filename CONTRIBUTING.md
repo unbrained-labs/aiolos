@@ -16,7 +16,7 @@ the real author via `trust.toml` + `fetch` instead.
 ```bash
 pip install -e .
 PYTHONPATH=src python -m pytest tests -q          # ~60 tests, must be green
-PYTHONPATH=src python -m claude_setup.cli --help  # try the CLI locally
+PYTHONPATH=src python -m aiolos.cli --help  # try the CLI locally
 cd site && python -m http.server 8765             # preview the site
 ```
 
@@ -34,7 +34,7 @@ argument.
 ## PR expectations
 
 - Tests for every new subcommand — prefer end-to-end via
-  `subprocess.run([sys.executable, "-m", "claude_setup.cli", ...])`.
+  `subprocess.run([sys.executable, "-m", "aiolos.cli", ...])`.
 - Docs updated: README for user-facing changes, AGENTS.md if you change a
   principle, CONTRIBUTING.md if you change the workflow.
 - Dry-run mode if your change writes files.
@@ -49,7 +49,7 @@ If you're reviewing, push back on:
 - Any non-idempotent writer.
 - Any command that can destroy data without `--dry-run` + an explicit flag.
 - Any new top-level key stashed in `settings.json` (use sidecars — see
-  `.claude/claude-setup.lock.json` pattern).
+  `.claude/aiolos.lock.json` pattern).
 - Fabricated MCP-server metadata. Only `modelcontextprotocol/servers`
   canonical entries are pre-catalogued; everything else is user-defined
   via `[[mcp_custom]]` in a preset.
@@ -57,5 +57,5 @@ If you're reviewing, push back on:
 ## Issues
 
 Good issues include: the exact command you ran, the version of
-claude-setup and Claude Code, the OS, and the expected vs actual output.
+aiolos and Claude Code, the OS, and the expected vs actual output.
 "It doesn't work" gets closed.

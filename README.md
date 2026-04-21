@@ -8,7 +8,7 @@
 [![license](https://img.shields.io/badge/license-MIT-141210?style=flat-square)](./LICENSE)
 [![python](https://img.shields.io/badge/python-3.11%2B-141210?style=flat-square)](./pyproject.toml)
 
-**Installs as `claude-setup`. Routes projects to the right skills. Does not ship skill content.**
+**Installs as `aiolos`. Routes projects to the right skills. Does not ship skill content.**
 
 One command, zero prompts, per-project `.claude/` wired up with:
 
@@ -31,16 +31,16 @@ uv tool install .          # or: pip install --user .
 ./bootstrap.sh             # seeds ~/.claude-library/presets/
 
 cd any-project
-claude-setup wizard        # one-shot: init + mcp + harden + tools
+aiolos wizard        # one-shot: init + mcp + harden + tools
 ```
 
 Or step-by-step:
 
 ```bash
-claude-setup init          # detect stack + activate matching built-in agents
-claude-setup mcp           # write .mcp.json with ${VAR} placeholders
-claude-setup harden        # permissions.deny baseline in settings.json
-claude-setup tools         # scan authenticated CLIs, scaffold wrappers
+aiolos init          # detect stack + activate matching built-in agents
+aiolos mcp           # write .mcp.json with ${VAR} placeholders
+aiolos harden        # permissions.deny baseline in settings.json
+aiolos tools         # scan authenticated CLIs, scaffold wrappers
 ```
 
 From inside Claude Code: `/setup`.
@@ -98,18 +98,18 @@ Monorepos: if more than one preset matches, **all** of them install (deduped).
 If you want to write a skill — your own, or a wrapper around a CLI you have installed — use `new-skill`. It enforces Anthropic's current conventions (single-line imperative description, `<!-- prettier-ignore -->`, progressive disclosure).
 
 ```bash
-claude-setup new-skill                 # interactive: name, description, wraps?
-claude-setup new-skill gh/ops \
+aiolos new-skill                 # interactive: name, description, wraps?
+aiolos new-skill gh/ops \
   --description "ALWAYS invoke when the user mentions PRs, issues, releases." \
   --wraps gh
-claude-setup lint ~/.claude-library/skills/gh/ops/SKILL.md
+aiolos lint ~/.claude-library/skills/gh/ops/SKILL.md
 ```
 
 It does not write the skill's body. That's still your job.
 
 ---
 
-## `claude-setup tools` — wrap your authenticated CLIs
+## `aiolos tools` — wrap your authenticated CLIs
 
 Scans `PATH` for ~25 productivity CLIs (gh, flyctl, neonctl, wrangler, docker, kubectl, terraform, stripe, fal, aws, gcloud…) and tells you:
 
@@ -121,7 +121,7 @@ The scaffolder's `--wraps <cli>` template is a preflight-and-cheat-sheet layout 
 
 ---
 
-## `claude-setup harden` — the deny-rule baseline
+## `aiolos harden` — the deny-rule baseline
 
 Writes a managed block in `.claude/settings.json`. **Defense in depth, not isolation** — for true isolation, enable Claude Code's sandbox.
 
@@ -141,11 +141,11 @@ Hooks:
 - `log_tool_use` — append every tool invocation to `.claude/tool-fires.jsonl`
 - `ding_on_stop` — short sound when Claude finishes a turn
 
-Managed state lives in a sidecar `.claude/claude-setup.lock.json`, not in `settings.json` itself — safer against Anthropic's schema evolution.
+Managed state lives in a sidecar `.claude/aiolos.lock.json`, not in `settings.json` itself — safer against Anthropic's schema evolution.
 
 ```bash
-claude-setup harden                 # interactive
-claude-setup harden --defaults      # non-interactive safe baseline
+aiolos harden                 # interactive
+aiolos harden --defaults      # non-interactive safe baseline
 ```
 
 Re-runs merge cleanly; user rules outside our managed block are preserved.
@@ -166,7 +166,7 @@ authors = [
 ]
 ```
 
-`claude-setup fetch <owner/repo>` warns and requires `--yes-unknown-author` for anything off the list.
+`aiolos fetch <owner/repo>` warns and requires `--yes-unknown-author` for anything off the list.
 
 ---
 
@@ -193,23 +193,23 @@ Override with `--copy` or `--symlink`. Forcing `--symlink` inside a git repo wri
 ## CLI reference
 
 ```
-claude-setup wizard    [--project PATH] [--noninteractive]
-claude-setup init      [--project PATH] [--json] [--copy | --symlink]
+aiolos wizard    [--project PATH] [--noninteractive]
+aiolos init      [--project PATH] [--json] [--copy | --symlink]
                        [--overwrite] [--dry-run] [--force]
-claude-setup install   [--preset P ...] [--skill S ...] [--agent A ...]
+aiolos install   [--preset P ...] [--skill S ...] [--agent A ...]
                        [--project PATH] [--copy | --symlink] [--overwrite] [--dry-run]
-claude-setup detect    [--project PATH] [--json] [--install] [--dry-run]
-claude-setup remove    [--skill S ...] [--agent A ...] [--project PATH]
-claude-setup list      [skills|agents|presets|all]
-claude-setup fetch     SOURCE [--skill S ...] [--list] [--yes-unknown-author]
+aiolos detect    [--project PATH] [--json] [--install] [--dry-run]
+aiolos remove    [--skill S ...] [--agent A ...] [--project PATH]
+aiolos list      [skills|agents|presets|all]
+aiolos fetch     SOURCE [--skill S ...] [--list] [--yes-unknown-author]
 
-claude-setup tools     [--project PATH] [--json] [--scaffold-all]
-claude-setup harden    [--project PATH] [--defaults]
-claude-setup audit     [PATH]
-claude-setup new-skill [NAME] [-d "…"] [--allowed-tools "…"] [--wraps CLI] [--overwrite]
-claude-setup new-agent NAME -d "…" [--role ROLE] [--model sonnet|opus|haiku] [--overwrite]
-claude-setup lint      [PATH]
-claude-setup doctor
+aiolos tools     [--project PATH] [--json] [--scaffold-all]
+aiolos harden    [--project PATH] [--defaults]
+aiolos audit     [PATH]
+aiolos new-skill [NAME] [-d "…"] [--allowed-tools "…"] [--wraps CLI] [--overwrite]
+aiolos new-agent NAME -d "…" [--role ROLE] [--model sonnet|opus|haiku] [--overwrite]
+aiolos lint      [PATH]
+aiolos doctor
 ```
 
 ---

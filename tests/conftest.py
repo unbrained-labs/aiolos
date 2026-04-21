@@ -1,4 +1,4 @@
-"""Shared fixtures for claude-setup tests."""
+"""Shared fixtures for aiolos tests."""
 from __future__ import annotations
 
 from pathlib import Path

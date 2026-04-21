@@ -1,4 +1,4 @@
-"""Configuration and constants for claude-setup."""
+"""Configuration and constants for aiolos."""
 from __future__ import annotations
 
 import os

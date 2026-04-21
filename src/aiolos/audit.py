@@ -147,7 +147,7 @@ def ensure_trust_file(library: Path) -> Path:
         return path
     lines = [
         "# Trusted skill authors (GitHub org or user slugs).",
-        "# claude-setup fetch warns when installing from an author not on this list.",
+        "# aiolos fetch warns when installing from an author not on this list.",
         "authors = [",
     ]
     for a in DEFAULT_TRUSTED_AUTHORS:

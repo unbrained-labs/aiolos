@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup import tools as cli_tools
-from claude_setup.audit import (
+from aiolos import tools as cli_tools
+from aiolos.audit import (
     audit_file,
     audit_library,
     audit_skill,
@@ -18,7 +18,7 @@ from claude_setup.audit import (
     is_trusted,
     source_author,
 )
-from claude_setup.harden import (
+from aiolos.harden import (
     AVAILABLE_HOOKS,
     Policy,
     compile_deny_rules,
@@ -147,10 +147,10 @@ def test_write_settings_creates_settings_and_sidecar_lock(tmp_path: Path) -> Non
     summary = write_settings(project, defaults())
 
     data = json.loads((project / ".claude" / "settings.json").read_text())
-    lock = json.loads((project / ".claude" / "claude-setup.lock.json").read_text())
+    lock = json.loads((project / ".claude" / "aiolos.lock.json").read_text())
     # Managed marker lives in the sidecar, not settings.json — keeps us out
     # of Anthropic's top-level key namespace.
-    assert "_claude_setup_managed" not in data
+    assert "_aiolos_managed" not in data
     assert lock["version"] >= 1
     assert len(data["permissions"]["deny"]) >= 10
     assert summary["deny_rules"] >= 10
@@ -199,7 +199,7 @@ def test_managed_hooks_tagged_with_comment(tmp_path: Path) -> None:
     write_settings(project, defaults())
     data = json.loads((project / ".claude" / "settings.json").read_text())
     managed = [h for h in data.get("hooks") or []
-               if isinstance(h, dict) and h.get("comment") == "managed-by:claude-setup"]
+               if isinstance(h, dict) and h.get("comment") == "managed-by:aiolos"]
     assert managed, "at least one hook should carry the managed marker"
 
 
@@ -215,7 +215,7 @@ def test_wizard_subcommand_runs_noninteractive(tmp_path: Path, library: Path) ->
     env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
 
     result = subprocess.run(
-        [sys.executable, "-m", "claude_setup.cli", "wizard",
+        [sys.executable, "-m", "aiolos.cli", "wizard",
          "--project", str(project), "--noninteractive"],
         capture_output=True, text=True, env=env, check=False,
     )
@@ -235,7 +235,7 @@ def test_tools_cli_json(tmp_path: Path, library: Path) -> None:
     env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
 
     result = subprocess.run(
-        [sys.executable, "-m", "claude_setup.cli", "tools",
+        [sys.executable, "-m", "aiolos.cli", "tools",
          "--project", str(project), "--json"],
         capture_output=True, text=True, env=env, check=False,
     )

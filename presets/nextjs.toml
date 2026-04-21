@@ -13,7 +13,7 @@ fetch = []
 skills = []
 
 # MCP servers from the built-in catalog (modelcontextprotocol/servers). Listed
-# here are strong fits for most Next.js repos. `claude-setup mcp --preset nextjs`
+# here are strong fits for most Next.js repos. `aiolos mcp --preset nextjs`
 # writes them into .mcp.json with ${VAR} placeholders.
 mcp = [
   "github",

@@ -6,7 +6,7 @@ version of the design rules.
 
 ## What this project is
 
-**aiolos** (installs as `claude-setup`). A CLI that configures `.claude/`
+**aiolos** (installs as `aiolos`). A CLI that configures `.claude/`
 directories for Claude Code projects. Stack detection, preset-driven install,
 MCP wiring with env-var placeholders, settings.json hardening, CLI-wrapper
 scaffolder. Plumbing only.
@@ -25,7 +25,7 @@ than silence. See the commit history if you want the scars.
 
 ## Orientation
 
-- **Python source**: `src/claude_setup/` — the installable package.
+- **Python source**: `src/aiolos/` — the installable package.
 - **Presets**: `presets/*.toml` — declarative recipes (detect rules +
   built-in agent names + optional fetch/MCP lists). No code.
 - **The `/setup` skill**: `skill/setup/SKILL.md` — the only SKILL.md that
@@ -40,7 +40,7 @@ than silence. See the commit history if you want the scars.
 ```bash
 pip install -e .
 PYTHONPATH=src python -m pytest tests -q        # full suite
-PYTHONPATH=src python -m claude_setup.cli ...    # run the CLI locally
+PYTHONPATH=src python -m aiolos.cli ...    # run the CLI locally
 cd site && python -m http.server 8765            # serve the site
 ```
 
@@ -54,7 +54,7 @@ cd site && python -m http.server 8765            # serve the site
 - One short comment for the *why* — avoid the "what." Well-named
   functions are the "what."
 - Test every new subcommand end-to-end via
-  `subprocess.run([sys.executable, "-m", "claude_setup.cli", ...])`.
+  `subprocess.run([sys.executable, "-m", "aiolos.cli", ...])`.
 - Presets are data. If you need logic in a preset, the wrong design won.
 
 ## Principles, in priority order
@@ -95,6 +95,6 @@ body when the diff alone doesn't. Trailer lines for co-authorship.
 ## If you get stuck
 
 The three files that explain the architecture fastest:
-`src/claude_setup/cli.py`, `src/claude_setup/installer.py`,
-`src/claude_setup/detect.py`. Read them top to bottom before proposing a
+`src/aiolos/cli.py`, `src/aiolos/installer.py`,
+`src/aiolos/detect.py`. Read them top to bottom before proposing a
 change to the preset loader or the harden writer.

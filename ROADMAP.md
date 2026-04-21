@@ -44,7 +44,7 @@ hook-based backstop snippet. Extension of `doctor`, not a new surface.
 Today `harden` supports one "ding on stop" hook. Add a curated set of Stop /
 PreToolUse / PostToolUse sound templates — completion chime, error buzz,
 production-command warning, long-task stinger. Opt-in, listed in
-`claude-setup harden` questionnaire.
+`aiolos harden` questionnaire.
 
 ### Plugin emit — `publish` · M
 
@@ -82,9 +82,9 @@ preset repo, with a lockfile for reproducibility. Direct answer to the
 2. **Preset format evolution.** Keeping presets TOML is nice but the
    `[[mcp_custom]]` pattern shows they're drifting toward a richer schema.
    Worth defining a `presetSchemaVersion` field now, or YAGNI?
-3. **Naming collision.** Package is `claude-setup`, brand is `aiolos`.
+3. **Naming collision.** Package is `aiolos`, brand is `aiolos`.
    The split works but it's one more thing to explain. If Anthropic ever
-   renames Claude Code, `claude-setup` becomes a liability — do we rename
+   renames Claude Code, `aiolos` becomes a liability — do we rename
    the package one day?
 4. **How opinionated should `harden --defaults` be?** Current defaults
    block destructive commands + cloud-delete APIs. Cautious users want

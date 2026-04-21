@@ -190,7 +190,7 @@ def format_scan(statuses: list[ToolStatus]) -> str:
     if missing_wrapper:
         lines.append("Installed but not wrapped (big productivity win):")
         for s in missing_wrapper:
-            lines.append(f"  • {s.tool.command:<10} → scaffold  claude-setup new-skill --wraps {s.tool.command}")
+            lines.append(f"  • {s.tool.command:<10} → scaffold  aiolos new-skill --wraps {s.tool.command}")
             lines.append(f"    {s.tool.blurb}")
         lines.append("")
 

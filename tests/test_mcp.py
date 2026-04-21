@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup import mcp
+from aiolos import mcp
 
 
 def test_catalog_has_canonical_servers_only() -> None:
@@ -141,7 +141,7 @@ command = "npx"
 args = ["-y", "@pencil/mcp"]
 env = ["PENCIL_API_KEY"]
 """)
-    from claude_setup.library import load_preset
+    from aiolos.library import load_preset
     resolved = load_preset("design", library)
     assert "filesystem" in resolved["mcp"]
     assert len(resolved["mcp_custom"]) == 1
