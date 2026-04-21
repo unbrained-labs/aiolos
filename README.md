@@ -4,12 +4,17 @@
 > bag of winds to route his voyage home. This tool routes agents, skills,
 > MCP servers, and harden rules into a Claude Code repo.
 
+[![site](https://img.shields.io/badge/site-unbrained--labs.github.io%2Faiolos-141210?style=flat-square)](https://unbrained-labs.github.io/aiolos/)
+[![license](https://img.shields.io/badge/license-MIT-141210?style=flat-square)](./LICENSE)
+[![python](https://img.shields.io/badge/python-3.11%2B-141210?style=flat-square)](./pyproject.toml)
+
 **Installs as `claude-setup`. Routes projects to the right skills. Does not ship skill content.**
 
 One command, zero prompts, per-project `.claude/` wired up with:
 
 - Claude Code's **built-in agents** that fit the detected stack (nothing to install; they ship with Claude Code).
 - **Community skills** fetched from authors you trust (allowlist in `trust.toml`, default: anthropics, vercel-labs, obra, trail-of-bits, microsoft).
+- **MCP servers** wired into `.mcp.json` with `${VAR}` placeholders — secrets stay in a gitignored `.env.claude`, never in git.
 - Your **authenticated CLIs** (`gh`, `flyctl`, `neonctl`, …) wrapped as skills you author yourself via a scaffolder that enforces best practice.
 - A **`permissions.deny` baseline** in `.claude/settings.json` protecting secrets (SSH, AWS, keychain, `.env*`).
 
@@ -21,17 +26,21 @@ The tool ships **zero skill markdown and zero agent markdown**. It's plumbing.
 
 ```bash
 git clone https://github.com/unbrained-labs/aiolos
-cd claude-setup
+cd aiolos
 uv tool install .          # or: pip install --user .
 ./bootstrap.sh             # seeds ~/.claude-library/presets/
 
 cd any-project
-claude-setup init          # detect + configure in one shot
-claude-setup harden        # settings.json deny-rule baseline
-claude-setup tools         # scan your CLIs, author wrappers
+claude-setup wizard        # one-shot: init + mcp + harden + tools
+```
 
-# or all three with a banner:
-claude-setup wizard
+Or step-by-step:
+
+```bash
+claude-setup init          # detect stack + activate matching built-in agents
+claude-setup mcp           # write .mcp.json with ${VAR} placeholders
+claude-setup harden        # permissions.deny baseline in settings.json
+claude-setup tools         # scan authenticated CLIs, scaffold wrappers
 ```
 
 From inside Claude Code: `/setup`.
