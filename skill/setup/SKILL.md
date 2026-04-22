@@ -65,9 +65,13 @@ Fetched       : <fetched>          (from trusted sources)
 
 Next:
   • /skills                 verify what's active
-  • aiolos harden     baseline deny rules + hooks
-  • aiolos tools      wrap your authenticated CLIs
+  • aiolos browse     pick community skills from anthropics/skills, skills.sh, …
+  • aiolos harden     baseline deny rules + hooks (settings.json + lock sidecar)
+  • aiolos tools      wrap the repo-relevant CLIs (uv, docker, kubectl, …)
 ```
+
+Every `aiolos` command that writes files prints a plan and asks `[Y/n]` first.
+Pass `--yes` to skip the confirmation; `--json` also bypasses prompts.
 
 ---
 

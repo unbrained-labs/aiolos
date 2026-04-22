@@ -169,19 +169,22 @@ DATABASE_URL=
         <h2>The small set of commands</h2>
         <dl class="commands">
           <dt>wizard</dt>
-          <dd>Interactive, one-shot. Runs <em>init</em>, offers <em>mcp</em>, <em>harden</em>, and <em>tools</em> in sequence. Start here.</dd>
+          <dd>Interactive grand tour. Five gated steps (<em>init → browse → harden → mcp → tools</em>); each prints a plan and asks <kbd>[Y/n]</kbd> before writing anything. Start here.</dd>
 
           <dt>init</dt>
           <dd>Scans the repo, picks the matching preset(s), activates the built-in Anthropic agents those presets reference (<code>typescript-pro</code>, <code>nextjs-developer</code>, <code>python-pro</code>, …). Monorepo-aware: if Python and Next.js both match, both activate.</dd>
+
+          <dt>browse</dt>
+          <dd>Interactive picker over trusted community sources — <code>anthropics/skills</code>, <code>obra/skills</code>, <code>vercel-labs/skills</code>, <code>skills.sh</code>, or a custom <code>owner/repo</code>. Lists their skills, confirms the ones you want, fetches into your library, installs into the repo.</dd>
 
           <dt>mcp</dt>
           <dd>Writes <code>.mcp.json</code> with <code>${VAR}</code> references, a committed <code>.env.claude.example</code>, and a <code>.gitignore</code> entry for the local <code>.env.claude</code>. Secrets never enter git.</dd>
 
           <dt>harden</dt>
-          <dd>Baseline <code>permissions.deny</code> rules in <code>.claude/settings.json</code> — SSH, AWS, GCP, GPG, kubeconfig, <code>.env*</code>, macOS Keychain. Optional hooks: refuse edits to <code>.env*</code>, pause on <code>--production</code>, ding when a turn finishes.</dd>
+          <dd>Baseline <code>permissions.deny</code> rules in <code>.claude/settings.json</code> — SSH, AWS, GCP, GPG, kubeconfig, <code>.env*</code>, macOS Keychain — plus a sidecar <code>aiolos.lock.json</code> so re-runs merge cleanly and never stomp your hand-written rules. Optional hooks: refuse edits to <code>.env*</code>, pause on <code>--production</code>, ding when a turn finishes.</dd>
 
           <dt>tools</dt>
-          <dd>Scans <code>PATH</code> for authenticated CLIs (<code>gh</code>, <code>flyctl</code>, <code>neonctl</code>, <code>wrangler</code>…) and scaffolds a wrapper <code>SKILL.md</code> you can fill in. You have the CLI authenticated; Claude might as well use it.</dd>
+          <dd>Scans <code>PATH</code> for authenticated CLIs (<code>gh</code>, <code>flyctl</code>, <code>neonctl</code>, <code>wrangler</code>…) and scaffolds a wrapper <code>SKILL.md</code> you can fill in. Defaults to <strong>repo-relevant</strong> CLIs — if the repo has a <code>Dockerfile</code> you see <code>docker</code>, not your whole global toolbox. Pass <code>--all</code> for the full scan.</dd>
 
           <dt>new-skill</dt>
           <dd>Scaffolds a <code>SKILL.md</code> with the things people forget: single-line description, Prettier guard, the right frontmatter keys. The body is yours.</dd>
