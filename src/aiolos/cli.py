@@ -34,9 +34,21 @@ from .library import (
     load_preset,
 )
 from .lint import lint_library, lint_skill
+from .prompt import choose, confirm, multiselect
 from .scaffolder import scaffold_agent, scaffold_skill
 from . import mcp as mcp_mod
 from . import tools as cli_tools
+
+
+def _assume_yes(args: argparse.Namespace) -> bool:
+    """A few flags all mean 'don't prompt me': --yes, --json, --dry-run,
+    --noninteractive. Called everywhere we'd otherwise ask for confirmation."""
+    return bool(
+        getattr(args, "yes", False)
+        or getattr(args, "json", False)
+        or getattr(args, "dry_run", False)
+        or getattr(args, "noninteractive", False)
+    )
 
 
 # ── init (one-shot) ───────────────────────────────────────────────────────────
@@ -67,7 +79,7 @@ def _print_header(title: str) -> None:
 
 
 def cmd_init(args: argparse.Namespace) -> None:
-    """Detect → install matching preset(s) → report.
+    """Detect → preview plan → confirm → install.
 
     Monorepos: if multiple presets tie for top score, we install them all
     (orthogonal stacks). Install is deduped across presets.
@@ -120,24 +132,22 @@ def cmd_init(args: argparse.Namespace) -> None:
         "installed": None,
     }
 
-    # We install unless ambiguous-and-not-forced.
-    if selected_list and not (ambiguous and not args.force):
-        summary = install_to_project(
-            project_path=project,
-            presets=selected_list,
-            use_symlinks=use_symlinks,
-            dry_run=args.dry_run,
-            overwrite=args.overwrite,
-            library=lib,
-            verbose=False,  # we render our own tighter summary below
-        )
-        report["installed"] = summary
-
+    # ── JSON fast-path (no human output, no prompts) ─────────────────────
     if args.json:
+        if selected_list and not (ambiguous and not args.force):
+            report["installed"] = install_to_project(
+                project_path=project,
+                presets=selected_list,
+                use_symlinks=use_symlinks,
+                dry_run=args.dry_run,
+                overwrite=args.overwrite,
+                library=lib,
+                verbose=False,
+            )
         print(json.dumps(report, indent=2, default=str))
         return
 
-    # ── Human-readable output ────────────────────────────────────────────
+    # ── Human flow: detection → plan → confirm → install ─────────────────
     print(f"◇ Project  {project}")
     print(f"◇ Library  {lib}")
     if seeded:
@@ -150,7 +160,7 @@ def cmd_init(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     if matches:
-        _print_header("Detected")
+        _print_header("Detected stack")
         for m in matches:
             marker = "✓" if m["preset"] in selected_list else "·"
             print(f"  {marker} {m['preset']}  (score {m['score']})")
@@ -165,44 +175,107 @@ def cmd_init(args: argparse.Namespace) -> None:
         sys.exit(0)
 
     if fallback_used:
-        print("\n· No preset matched — installed `base` as a starter.")
+        print("\n· No preset matched — falling back to `base` as a starter.")
 
-    if report["installed"]:
-        s = report["installed"]
-        _print_header("Active for this project")
-        if s.get("agents_builtin"):
-            print(f"  built-in agents  {', '.join(s['agents_builtin'])}")
-            print("                   (ship with Claude Code; no install needed)")
-        if s["skills_installed"]:
-            print(f"  skills           {', '.join(s['skills_installed'])}")
-        if s.get("fetched"):
-            print(f"  fetched          {', '.join(s['fetched'])}")
-        if s.get("fetch_errors"):
-            print()
-            print("  fetch errors:")
-            for err in s["fetch_errors"]:
-                print(f"    ✗ {err}")
-        if s["skills_installed"] or s["agents_installed"]:
-            print(f"  mode             {s.get('mode', '?')}"
-                  + ("  (git-safe copy)" if s.get("git_repo") and s.get("mode") == "copy" else ""))
-        if s.get("wrote_gitignore"):
-            print("  note             wrote .claude/.gitignore for personal symlinks")
+    # Compute the full plan (builtins + skills + fetches) before writing anything.
+    from .library import load_preset
+    plan_agents_builtin: list[str] = []
+    plan_skills_library: list[str] = []
+    plan_fetches: list[str] = []
+    for preset in selected_list:
+        resolved = load_preset(preset, lib)
+        plan_agents_builtin.extend(resolved["agents"])
+        plan_skills_library.extend(resolved["skills"])
+        plan_fetches.extend(resolved["fetch"])
+    plan_agents_builtin = list(dict.fromkeys(plan_agents_builtin))
+    plan_skills_library = list(dict.fromkeys(plan_skills_library))
+    plan_fetches = list(dict.fromkeys(plan_fetches))
 
-        # Closing hint: installed CLIs with no wrapper
-        try:
-            statuses = cli_tools.scan(project, lib)
-        except Exception:
-            statuses = []
-        wrappable = [st for st in statuses if st.installed and not st.wrapped_by_library]
-        if wrappable:
-            _print_header("Authenticated CLIs with no wrapper")
-            for st in wrappable[:5]:
-                print(f"  • {st.tool.command:<10} {st.tool.blurb}")
-            print("  Run `aiolos tools --scaffold-all` to wrap them.")
+    # Which "library skills" actually exist vs. are just referenced by name
+    library_skill_names = set(list_skills(lib))
+    will_install = [s for s in plan_skills_library if s in library_skill_names]
+    missing_skills = [s for s in plan_skills_library if s not in library_skill_names]
 
-        _print_header("Next")
-        print("  · open this repo in Claude Code and run /skills to verify")
-        print("  · `aiolos harden` to add deny-rule baseline in settings.json")
+    in_git = (project / ".git").exists()
+    mode_label = ("symlink" if use_symlinks else
+                  "copy" if use_symlinks is False else
+                  ("copy (git repo)" if in_git else "symlink"))
+
+    _print_header("Install plan")
+    if plan_agents_builtin:
+        print(f"  Claude Code built-in agents:  {', '.join(plan_agents_builtin)}")
+        print("    (reference-only — they already ship with Claude Code)")
+    if will_install:
+        print(f"  library skills → project:     {', '.join(will_install)}")
+    if plan_fetches:
+        print(f"  community fetches:            {', '.join(plan_fetches)}")
+    if missing_skills:
+        print(f"  missing from library:         {', '.join(missing_skills)}")
+        print("    (referenced by preset but not present — will be skipped)")
+    if not (plan_agents_builtin or will_install or plan_fetches):
+        print("  (nothing to write — this preset only references built-in agents)")
+    print(f"  mode:                         {mode_label}")
+    print(f"  writes to:                    {project}/.claude/")
+
+    if not _assume_yes(args):
+        if not confirm("\nProceed with install?", default=True):
+            print("Cancelled — nothing written.")
+            sys.exit(0)
+
+    summary = install_to_project(
+        project_path=project,
+        presets=selected_list,
+        use_symlinks=use_symlinks,
+        dry_run=args.dry_run,
+        overwrite=args.overwrite,
+        library=lib,
+        verbose=False,
+    )
+    report["installed"] = summary
+
+    s = summary
+    _print_header("Active for this project")
+    if s.get("agents_builtin"):
+        print(f"  built-in agents  {', '.join(s['agents_builtin'])}")
+    if s["skills_installed"]:
+        print(f"  skills           {', '.join(s['skills_installed'])}")
+    if s.get("fetched"):
+        print(f"  fetched          {', '.join(s['fetched'])}")
+    if s.get("fetch_errors"):
+        print()
+        print("  fetch errors:")
+        for err in s["fetch_errors"]:
+            print(f"    ✗ {err}")
+    if s["skills_installed"] or s["agents_installed"]:
+        print(f"  mode             {s.get('mode', '?')}"
+              + ("  (git-safe copy)" if s.get("git_repo") and s.get("mode") == "copy" else ""))
+    if s.get("wrote_gitignore"):
+        print("  note             wrote .claude/.gitignore for personal symlinks")
+
+    # Repo-relevant CLI suggestions only — not the whole global toolbox.
+    try:
+        statuses = cli_tools.scan(project, lib)
+    except Exception:
+        statuses = []
+    relevant_wrap = [st for st in statuses
+                     if st.installed and not st.wrapped_by_library and st.repo_suggests]
+    if relevant_wrap:
+        _print_header("CLIs this repo uses that Claude can't drive yet")
+        print("  (a wrapper is a small SKILL.md that tells Claude how to use the CLI)")
+        for st in relevant_wrap[:5]:
+            reason = st.repo_suggestion_reasons[0] if st.repo_suggestion_reasons else ""
+            print(f"  • {st.tool.command:<10} {st.tool.blurb}  ({reason})")
+        print("  Run `aiolos tools` to review, then `aiolos tools --scaffold-all` to wrap.")
+
+    _print_header("Next steps (optional)")
+    print("  · aiolos browse          — pick community skills from anthropics/skills, skills.sh, …")
+    print("  · aiolos harden          — deny secret-file reads, destructive commands, and more")
+    print("                             (writes .claude/settings.json + a small lock file we use")
+    print("                              to clean up on re-runs)")
+    print("  · aiolos mcp             — configure MCP servers for this repo (.mcp.json)")
+    print("  · open in Claude Code and run /skills to see what is now active")
+
+
 
 
 # ── install ───────────────────────────────────────────────────────────────────
@@ -228,6 +301,21 @@ def cmd_install(args: argparse.Namespace) -> None:
     print(f"Project : {project}")
     if args.dry_run:
         print("Mode    : dry-run (no changes will be made)")
+
+    # Show what will happen before touching the filesystem.
+    _print_header("Install plan")
+    if args.preset:
+        print(f"  presets:  {', '.join(args.preset)}")
+    if args.skill:
+        print(f"  skills:   {', '.join(args.skill)}")
+    if args.agent:
+        print(f"  agents:   {', '.join(args.agent)}")
+    print(f"  writes to: {project}/.claude/")
+
+    if not _assume_yes(args):
+        if not confirm("\nProceed?", default=True):
+            print("Cancelled — nothing written.")
+            sys.exit(0)
     print()
 
     summary = install_to_project(
@@ -466,15 +554,52 @@ def cmd_harden(args: argparse.Namespace) -> None:
     else:
         policy = run_questionnaire()
 
+    # Summarise what the policy will do in human terms, then confirm.
+    from .harden import compile_deny_rules, compile_hooks, LOCK_FILENAME
+    deny_rules = compile_deny_rules(policy)
+    hooks = compile_hooks(policy)
+
+    _print_header("Harden plan")
+    print(f"  Project: {project}")
+    print()
+    print("  Categories blocked (deny rules in .claude/settings.json):")
+    print("    · read access to ~/.ssh, ~/.aws, ~/.gcloud, keychains, .env*")
+    if policy.block_destructive:
+        print("    · destructive commands (rm -rf /, git push --force, git reset --hard)")
+    if policy.block_cloud_control_plane:
+        print("    · cloud control-plane deletes (aws iam delete, kubectl delete ns, terraform destroy)")
+    if policy.block_package_publish:
+        print("    · package publishing (npm/pnpm/cargo publish, twine upload)")
+    if policy.extra_deny:
+        print(f"    · {len(policy.extra_deny)} extra rule(s) you configured")
+    print(f"    → {len(deny_rules)} deny rules total")
+    print()
+    if hooks:
+        print("  Hooks installed (Claude runs these on tool events):")
+        for h in hooks:
+            print(f"    · {h['event']} [{h['matcher'] or 'any'}]")
+    else:
+        print("  Hooks: none")
+    print()
+    print("  Files written:")
+    print(f"    · {project}/.claude/settings.json  — the actual policy")
+    print(f"    · {project}/.claude/{LOCK_FILENAME}  — sidecar record of what we installed,")
+    print("       so re-runs merge cleanly and never stomp on your hand-written rules")
+
+    if not _assume_yes(args):
+        if not confirm("\nWrite these files?", default=True):
+            print("Cancelled — nothing written.")
+            sys.exit(0)
+
     summary = write_settings(project, policy)
     print()
-    print(f"Wrote {summary['path']}")
-    print(
-        f"  {summary['deny_rules']} deny rules, "
-        f"{summary['hooks']} hook(s) "
-        f"({'updated' if summary['existed'] else 'new'})"
-    )
-    print("Review with:  cat .claude/settings.json | jq '.permissions.deny'")
+    print(f"✓ Wrote {summary['path']}")
+    print(f"  {summary['deny_rules']} deny rules, {summary['hooks']} hook(s) "
+          f"({'updated' if summary['existed'] else 'new'})")
+    print(f"✓ Wrote {summary['lock_path']}  (undo record — don't edit)")
+    print()
+    print("  Review deny rules:  jq '.permissions.deny' < .claude/settings.json")
+    print("  Remove everything:  delete both files and re-run harden")
 
 
 # ── tools ─────────────────────────────────────────────────────────────────────
@@ -491,27 +616,43 @@ def cmd_tools(args: argparse.Namespace) -> None:
     statuses = cli_tools.scan(project, lib)
     print(f"Project : {project}")
     print(f"Library : {lib}\n")
-    print(cli_tools.format_scan(statuses))
+    print(cli_tools.format_scan(statuses, show_all=args.all))
 
     if args.scaffold_all:
+        # Only scaffold for tools that are repo-relevant unless --all is set.
+        if args.all:
+            pool = [s for s in statuses if s.installed and not s.wrapped_by_library]
+        else:
+            pool = [s for s in statuses
+                    if s.installed and not s.wrapped_by_library and s.repo_suggests]
+        if not pool:
+            print("\nNothing to scaffold.")
+            return
+        print(f"\nAbout to scaffold {len(pool)} wrapper skill(s) in your library "
+              f"({lib}/skills/):")
+        for s in pool:
+            print(f"  • {s.tool.skill_name}  (wraps {s.tool.command})")
+        if not _assume_yes(args):
+            if not confirm("\nCreate these?", default=True):
+                print("Cancelled.")
+                return
         made: list[str] = []
-        for s in statuses:
-            if s.installed and not s.wrapped_by_library:
-                desc = (
-                    f"ALWAYS invoke this skill when the user mentions {s.tool.command} "
-                    f"or tasks this CLI handles ({s.tool.blurb.rstrip('.')}). "
-                    f"Do NOT shell out to {s.tool.command} without this skill."
+        for s in pool:
+            desc = (
+                f"ALWAYS invoke this skill when the user mentions {s.tool.command} "
+                f"or tasks this CLI handles ({s.tool.blurb.rstrip('.')}). "
+                f"Do NOT shell out to {s.tool.command} without this skill."
+            )
+            try:
+                scaffold_skill(
+                    name=s.tool.skill_name,
+                    description=desc,
+                    library=lib,
+                    wraps=s.tool.command,
                 )
-                try:
-                    scaffold_skill(
-                        name=s.tool.skill_name,
-                        description=desc,
-                        library=lib,
-                        wraps=s.tool.command,
-                    )
-                    made.append(s.tool.skill_name)
-                except (ValueError, FileExistsError):
-                    pass
+                made.append(s.tool.skill_name)
+            except (ValueError, FileExistsError):
+                pass
         if made:
             print(f"\nScaffolded {len(made)} wrapper skill(s):")
             for m in made:
@@ -649,9 +790,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
 
     # init (one-shot)
-    p = sub.add_parser("init", help="One-shot: detect → install top preset (or base fallback)")
+    p = sub.add_parser("init", help="Detect → show plan → confirm → install top preset(s)")
     p.add_argument("--project", default=".", metavar="PATH")
-    p.add_argument("--json", action="store_true", help="Machine-readable output")
+    p.add_argument("--json", action="store_true", help="Machine-readable output (skips prompts)")
+    p.add_argument("--yes", "-y", action="store_true", help="Skip the confirm prompt")
     link = p.add_mutually_exclusive_group()
     link.add_argument("--copy", action="store_true")
     link.add_argument("--symlink", action="store_true")
@@ -665,6 +807,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--agent", "-a", metavar="AGENT", action="append")
     p.add_argument("--preset", "-p", metavar="PRESET", action="append")
     p.add_argument("--project", default=".", metavar="PATH")
+    p.add_argument("--yes", "-y", action="store_true", help="Skip the confirm prompt")
     link = p.add_mutually_exclusive_group()
     link.add_argument("--copy", action="store_true")
     link.add_argument("--symlink", action="store_true")
@@ -732,13 +875,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--project", default=".", metavar="PATH")
     p.add_argument("--defaults", action="store_true",
                    help="Use sensible defaults (no questions)")
+    p.add_argument("--yes", "-y", action="store_true", help="Skip the confirm prompt")
 
     # tools
     p = sub.add_parser("tools", help="Scan PATH for productivity CLIs and suggest wrappers")
     p.add_argument("--project", default=".", metavar="PATH")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--all", action="store_true",
+                   help="Show every installed CLI (default: only repo-relevant)")
     p.add_argument("--scaffold-all", action="store_true",
-                   help="Scaffold wrapper skills for every installed-but-unwrapped CLI")
+                   help="Scaffold wrapper skills for unwrapped CLIs (repo-relevant unless --all)")
+    p.add_argument("--yes", "-y", action="store_true", help="Skip the confirm prompt")
 
     # wizard
     p = sub.add_parser("wizard", help="One-shot grand opening: init + harden + tools (with optional techno)")
@@ -756,8 +903,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--clear", action="store_true",
                    help="Remove aiolos-managed entries from .mcp.json")
     p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--yes", "-y", action="store_true", help="Skip the confirm prompt")
 
-    # fetch already exists earlier; extend its flags
+    # browse
+    p = sub.add_parser("browse",
+                       help="Browse community skills (anthropics/skills, skills.sh, …) and install")
+    p.add_argument("--project", default=".", metavar="PATH",
+                   help="Where to install selected skills (default: current repo)")
+    p.add_argument("--source", metavar="SOURCE",
+                   help="Skip the source picker and browse this repo directly (e.g. anthropics/skills)")
+    p.add_argument("--yes", "-y", action="store_true",
+                   help="Skip confirmations (only useful with --source + piped input)")
+
     return parser
 
 
@@ -784,6 +941,7 @@ def main() -> None:
         "tools": cmd_tools,
         "wizard": cmd_wizard,
         "mcp": cmd_mcp,
+        "browse": cmd_browse,
     }
     dispatch[args.command](args)
 
@@ -837,12 +995,31 @@ def cmd_mcp(args: argparse.Namespace) -> None:
         return
 
     if args.clear:
-        # Remove all managed entries by installing an empty list.
+        if not _assume_yes(args):
+            if not confirm(f"Remove aiolos-managed MCP entries from {project}/.mcp.json?",
+                           default=True):
+                print("Cancelled.")
+                return
         summary = mcp_mod.write_mcp_config(project, [], custom_servers=[], dry_run=args.dry_run)
         print(f"Cleared managed MCP entries from {summary['path']}")
         return
 
     slugs = list(dict.fromkeys(slugs))
+
+    # Preview before writing.
+    _print_header("MCP install plan")
+    if slugs:
+        print(f"  catalog servers:  {', '.join(slugs)}")
+    if custom:
+        print(f"  custom servers:   {', '.join(c.slug for c in custom)}")
+    print(f"  writes:  {project}/.mcp.json  (env vars become ${{VAR}} placeholders)")
+    print(f"           {project}/.env.claude.example  (template — copy to .env.claude)")
+
+    if not _assume_yes(args):
+        if not confirm("\nProceed?", default=True):
+            print("Cancelled — nothing written.")
+            return
+
     try:
         summary = mcp_mod.write_mcp_config(
             project, slugs, custom_servers=custom, dry_run=args.dry_run,
@@ -865,6 +1042,118 @@ def cmd_mcp(args: argparse.Namespace) -> None:
         print("  next       copy to .env.claude and fill in real values")
     if summary.get("wrote_gitignore"):
         print("  note       added .env.claude to .gitignore")
+
+
+# ── browse ────────────────────────────────────────────────────────────────────
+
+# Curated starting points. Every author here is in the default trust list
+# (see audit.DEFAULT_TRUSTED_AUTHORS). Users can still type in a custom source.
+BROWSE_SOURCES: list[tuple[str, str]] = [
+    ("anthropics/skills", "Anthropic's official skill collection"),
+    ("obra/skills",       "Jesse Vincent's community-trusted skills"),
+    ("vercel-labs/skills", "Vercel Labs skills"),
+    ("skills.sh",         "Open community catalogue (skills.sh)"),
+]
+
+
+def cmd_browse(args: argparse.Namespace) -> None:
+    """Interactive: pick a trusted source → list skills → pick → fetch → install."""
+    lib = get_library()
+    ensure_library(lib)
+    ensure_trust_file(lib)
+    project = Path(args.project).resolve()
+
+    # 1) Source selection
+    if args.source:
+        source = args.source
+    else:
+        print("Pick a source to browse:\n")
+        labels = [f"{slug:<22} {desc}" for slug, desc in BROWSE_SOURCES]
+        labels.append("(type a custom owner/repo — e.g. your-org/skills)")
+        pick = choose("Sources:", labels, default=1)
+        if pick is None:
+            print("Cancelled.")
+            return
+        if pick == len(labels):
+            try:
+                source = input("Custom source (owner/repo): ").strip()
+            except EOFError:
+                print("Cancelled.")
+                return
+            if not source:
+                print("No source given — cancelled.")
+                return
+        else:
+            source = BROWSE_SOURCES[pick - 1][0]
+
+    # 2) Trust check
+    if not is_trusted(source, lib):
+        author = source_author(source)
+        print(f"\n⚠  Author {author!r} is not on your trust allowlist ({lib}/trust.toml).")
+        print("   Skills can run arbitrary shell commands — review before installing.")
+        if not confirm("Continue anyway?", default=False, assume_yes=args.yes):
+            print("Cancelled.")
+            return
+
+    # 3) List skills from the source via the existing fetch machinery
+    print(f"\nListing skills from {source} …")
+    try:
+        from .library import fetch_from_skills_sh
+        # `--list` mode prints to stdout; we don't currently parse the output.
+        # The user sees the list, then we ask them which names to install.
+        fetch_from_skills_sh(source=source, skill_names=[], library=lib, verbose=True)
+    except RuntimeError as e:
+        print(f"\nError: {e}", file=sys.stderr)
+        print("\nIf `skills.sh` isn't installed, try:  npm install -g skills")
+        print("Or configure your library with bootstrap.sh.")
+        sys.exit(1)
+
+    # 4) Ask which skills to fetch
+    print("\nType skill names to fetch (comma-separated), or Enter to cancel.")
+    print("  e.g. git, pytest, docker")
+    try:
+        raw = input("Skills: ").strip()
+    except EOFError:
+        raw = ""
+    if not raw:
+        print("Cancelled — nothing fetched.")
+        return
+    wanted = [s.strip() for s in raw.split(",") if s.strip()]
+    if not wanted:
+        print("Cancelled.")
+        return
+
+    # 5) Fetch into library
+    print(f"\nAbout to fetch into your library ({lib}/skills/):")
+    for s in wanted:
+        print(f"  • {s}  (from {source})")
+    if not confirm("\nProceed?", default=True, assume_yes=args.yes):
+        print("Cancelled.")
+        return
+
+    from .library import fetch_from_skills_sh
+    installed = fetch_from_skills_sh(
+        source=source, skill_names=wanted, library=lib, verbose=True,
+    )
+    if not installed:
+        print("\nNothing was fetched. Check the skill names and try again.")
+        return
+
+    # 6) Offer to install into this project
+    print(f"\nFetched into library: {', '.join(installed)}")
+    if not confirm(
+        f"Install these {len(installed)} skill(s) into {project}/.claude/skills/?",
+        default=True, assume_yes=args.yes,
+    ):
+        print("Done — skills live in your library and you can install them later with:")
+        print(f"  aiolos install " + " ".join(f"--skill {s}" for s in installed))
+        return
+
+    summary = install_to_project(
+        project_path=project, skills=installed, library=lib, verbose=True,
+    )
+    total = len(summary["skills_installed"])
+    print(f"\n✓ Installed {total} skill(s) into {project}/.claude/skills/")
 
 
 if __name__ == "__main__":

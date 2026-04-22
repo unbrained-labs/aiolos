@@ -181,3 +181,41 @@ def test_cli_init_falls_back_to_base(tmp_path: Path, library: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["selected"] == ["base"]
     assert payload["fallback_used"] is True
+
+
+def test_cli_init_cancel_aborts_write(tmp_path: Path, library: Path) -> None:
+    """Piping 'n' to the confirm prompt must abort before any files land."""
+    import os
+    project = tmp_path / "proj"
+    project.mkdir()
+    (project / "package.json").write_text('{"dependencies": {"next": "14"}}')
+
+    env = os.environ.copy()
+    env["CLAUDE_LIBRARY"] = str(library)
+    env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
+
+    result = _run(
+        [sys.executable, "-m", "aiolos.cli", "init", "--project", str(project)],
+        env=env, input="n\n",
+    )
+    assert result.returncode == 0, result.stderr
+    assert "Cancelled" in result.stdout
+    assert not (project / ".claude" / "skills").exists()
+
+
+def test_cli_harden_cancel_aborts_write(tmp_path: Path) -> None:
+    """Piping 'n' to harden must not write settings.json."""
+    import os
+    project = tmp_path / "proj"
+    project.mkdir()
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")
+
+    result = _run(
+        [sys.executable, "-m", "aiolos.cli", "harden",
+         "--project", str(project), "--defaults"],
+        env=env, input="n\n",
+    )
+    assert result.returncode == 0, result.stderr
+    assert "Cancelled" in result.stdout
+    assert not (project / ".claude" / "settings.json").exists()

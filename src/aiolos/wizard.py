@@ -16,12 +16,14 @@ import time
 from pathlib import Path
 
 BANNER = r"""
-   ___  _     _   _  _   ___  ___      ___  ___  ___  _  _  ___
-  / __|| |   /_\ | || | |   \| __|    / __|| __|/ __|| || || _ \
- | (__ | |__ / _ \| __ | | |) | _|    \__ \| _| \__ \| __ || __/
-  \___||____/_/ \_\_||_| |___/|___|   |___/|___||___/|_||_||_|
+    █████╗ ██╗ ██████╗ ██╗      ██████╗ ███████╗
+   ██╔══██╗██║██╔═══██╗██║     ██╔═══██╗██╔════╝
+   ███████║██║██║   ██║██║     ██║   ██║███████╗
+   ██╔══██║██║██║   ██║██║     ██║   ██║╚════██║
+   ██║  ██║██║╚██████╔╝███████╗╚██████╔╝███████║
+   ╚═╝  ╚═╝╚═╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚══════╝
 
-              maxxxx shipping.  one preset to rule the repo.
+      plumbing for Claude Code — you stay in control.
 """
 
 
@@ -101,45 +103,94 @@ def _ask(prompt: str, default: bool) -> bool:
 
 
 def run_wizard(project: Path, noninteractive: bool = False) -> dict:
-    """Entry point for `aiolos wizard`.
+    """Interactive grand-tour. Each step is gated by its own y/N prompt, so
+    users can pick what they actually want. `noninteractive=True` auto-accepts
+    every step (for tests / CI).
 
-    Returns a small summary dict for tests. Side-effects: prints banner,
-    optionally plays sound, and runs the init + harden + tools closing note.
+    Returns a small summary dict for tests.
     """
     from .cli import build_parser  # local import to avoid cycles
 
     print(BANNER)
+    print("  aiolos sets up Claude Code for this repo in a few small, reversible steps.")
+    print("  Every step shows you exactly what it's about to write before doing it.")
+    print()
+
     wants_sound = False
     if not noninteractive:
         wants_sound = _ask(
-            "Sound? (synthesizes a short techno kick pattern via sox if available)", False
+            "Sound? (short synthesised kick via sox if installed)", False
         )
 
     if wants_sound:
         play_intro("hardstyle")
 
-    # Run init (one-shot) with human output, then harden defaults, then tools.
+    parser = build_parser()
     summary: dict = {"sound": wants_sound, "steps": []}
 
-    parser = build_parser()
-    # init
-    init_args = parser.parse_args(["init", "--project", str(project)])
-    from .cli import cmd_init, cmd_harden, cmd_tools
-    print("\n— step 1/3  aiolos init —\n")
-    cmd_init(init_args)
-    summary["steps"].append("init")
+    def _step(num: int, total: int, label: str, explainer: str) -> bool:
+        """Print a step header and ask whether to run it. Returns True = run."""
+        print(f"\n— step {num}/{total}  {label} —")
+        print(f"  {explainer}")
+        if noninteractive:
+            return True
+        return _ask("  Run this step?", True)
 
-    # harden (defaults, no questions — wizard is about speed; user can re-run harden interactively later)
-    print("\n— step 2/3  aiolos harden --defaults —\n")
-    harden_args = parser.parse_args(["harden", "--project", str(project), "--defaults"])
-    cmd_harden(harden_args)
-    summary["steps"].append("harden")
+    from .cli import cmd_init, cmd_harden, cmd_tools, cmd_browse, cmd_mcp
 
-    # tools (show what's wrappable)
-    print("\n— step 3/3  aiolos tools —\n")
-    tools_args = parser.parse_args(["tools", "--project", str(project)])
-    cmd_tools(tools_args)
-    summary["steps"].append("tools")
+    # Step 1 — init (preset detect + install). cmd_init runs its own plan+confirm,
+    # but we still gate the step-start so users can skip init entirely.
+    if _step(1, 5, "aiolos init",
+             "detect your stack → enable built-in agents → install preset skills"):
+        # wizard passes --yes so cmd_init's own prompt doesn't double-ask
+        init_args = parser.parse_args(
+            ["init", "--project", str(project)] + (["--yes"] if noninteractive else [])
+        )
+        cmd_init(init_args)
+        summary["steps"].append("init")
 
-    print("\nDone. Run `aiolos harden` (no --defaults) later to pick hooks.")
+    # Step 2 — browse community skills (new).
+    if _step(2, 5, "aiolos browse",
+             "pick community skills from anthropics/skills, skills.sh, etc. (optional)"):
+        if noninteractive:
+            # Can't browse without a TTY; skip in CI.
+            print("  (skipped in noninteractive mode)")
+        else:
+            try:
+                browse_args = parser.parse_args(["browse", "--project", str(project)])
+                cmd_browse(browse_args)
+                summary["steps"].append("browse")
+            except SystemExit:
+                pass  # browse exits 1 if skills CLI is missing — don't fail the wizard
+
+    # Step 3 — harden (deny rules + hooks).
+    if _step(3, 5, "aiolos harden",
+             "deny reads of ~/.ssh/~/.aws/.env, block destructive commands, optional hooks"):
+        # In interactive mode we run the questionnaire so users pick their hooks.
+        # In noninteractive mode we use defaults (what tests rely on).
+        argv = ["harden", "--project", str(project)]
+        if noninteractive:
+            argv += ["--defaults", "--yes"]
+        harden_args = parser.parse_args(argv)
+        cmd_harden(harden_args)
+        summary["steps"].append("harden")
+
+    # Step 4 — mcp (optional).
+    if _step(4, 5, "aiolos mcp",
+             "configure MCP servers for this repo — .mcp.json with ${VAR} placeholders"):
+        if noninteractive:
+            print("  (skipped in noninteractive mode — no --preset/--server given)")
+        else:
+            mcp_args = parser.parse_args(["mcp", "--project", str(project)])
+            cmd_mcp(mcp_args)
+            summary["steps"].append("mcp")
+
+    # Step 5 — tools scan (read-only, safe).
+    if _step(5, 5, "aiolos tools",
+             "read-only: show repo-relevant CLIs Claude can't drive yet"):
+        tools_args = parser.parse_args(["tools", "--project", str(project)])
+        cmd_tools(tools_args)
+        summary["steps"].append("tools")
+
+    print("\nDone. Re-run any step individually (see `aiolos --help`) whenever you want.")
     return summary
