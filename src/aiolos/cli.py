@@ -1,4 +1,4 @@
-"""claude-setup CLI — install Claude Code skills and agents from your library."""
+"""aiolos CLI — install Claude Code skills and agents from your library."""
 from __future__ import annotations
 
 import argparse
@@ -43,7 +43,7 @@ from . import tools as cli_tools
 
 def _auto_seed_presets(lib: Path) -> bool:
     """If the library has no presets, copy the shipped presets from the repo.
-    We do NOT seed skills or agents — claude-setup doesn't ship that content.
+    We do NOT seed skills or agents — aiolos doesn't ship that content.
     """
     if list_presets(lib):
         return False
@@ -161,7 +161,7 @@ def cmd_init(args: argparse.Namespace) -> None:
         print()
         print(f"Top matches tied at score 1: {', '.join(selected_list)}")
         print("Too little signal to pick — re-run with `--force` or")
-        print(f"  claude-setup install --preset {selected_list[0]}")
+        print(f"  aiolos install --preset {selected_list[0]}")
         sys.exit(0)
 
     if fallback_used:
@@ -198,11 +198,11 @@ def cmd_init(args: argparse.Namespace) -> None:
             _print_header("Authenticated CLIs with no wrapper")
             for st in wrappable[:5]:
                 print(f"  • {st.tool.command:<10} {st.tool.blurb}")
-            print("  Run `claude-setup tools --scaffold-all` to wrap them.")
+            print("  Run `aiolos tools --scaffold-all` to wrap them.")
 
         _print_header("Next")
         print("  · open this repo in Claude Code and run /skills to verify")
-        print("  · `claude-setup harden` to add deny-rule baseline in settings.json")
+        print("  · `aiolos harden` to add deny-rule baseline in settings.json")
 
 
 # ── install ───────────────────────────────────────────────────────────────────
@@ -516,7 +516,7 @@ def cmd_tools(args: argparse.Namespace) -> None:
             print(f"\nScaffolded {len(made)} wrapper skill(s):")
             for m in made:
                 print(f"  ✓ {m}")
-            print("Edit them, then install into a project with `claude-setup install`.")
+            print("Edit them, then install into a project with `aiolos install`.")
 
 
 # ── new-skill / new-agent ─────────────────────────────────────────────────────
@@ -527,7 +527,7 @@ def cmd_new_skill(args: argparse.Namespace) -> None:
     wraps = args.wraps
     allowed_tools = args.allowed_tools
 
-    # If the user ran `claude-setup new-skill` bare, walk them through it.
+    # If the user ran `aiolos new-skill` bare, walk them through it.
     # Three short prompts, nothing more.
     if not description:
         if not name:
@@ -570,7 +570,7 @@ def cmd_new_skill(args: argparse.Namespace) -> None:
         sys.exit(1)
 
     print(f"\n✓ Wrote {path}")
-    print(f"  Next:  claude-setup lint {path}")
+    print(f"  Next:  aiolos lint {path}")
 
 
 def cmd_new_agent(args: argparse.Namespace) -> None:
@@ -643,7 +643,7 @@ def cmd_doctor(args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="claude-setup",
+        prog="aiolos",
         description="Install Claude Code skills and agents from your personal library.",
     )
     sub = parser.add_subparsers(dest="command")
@@ -754,7 +754,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--preset", action="append", metavar="NAME",
                    help="Install MCP servers declared in a preset (repeatable)")
     p.add_argument("--clear", action="store_true",
-                   help="Remove claude-setup-managed entries from .mcp.json")
+                   help="Remove aiolos-managed entries from .mcp.json")
     p.add_argument("--dry-run", action="store_true")
 
     # fetch already exists earlier; extend its flags
@@ -824,8 +824,8 @@ def cmd_mcp(args: argparse.Namespace) -> None:
         if not suggestions:
             print("No MCP servers suggested for this project.")
             print("Options:")
-            print("  · pick one:  claude-setup mcp --server postgres --server github")
-            print("  · from preset:  claude-setup mcp --preset nextjs")
+            print("  · pick one:  aiolos mcp --server postgres --server github")
+            print("  · from preset:  aiolos mcp --preset nextjs")
             print(f"  · list catalog:  {sorted(mcp_mod.BY_SLUG)}")
             return
         print("Suggested based on this repo:\n")
@@ -833,7 +833,7 @@ def cmd_mcp(args: argparse.Namespace) -> None:
             env_hint = f"  (env: {', '.join(s.env)})" if s.env else ""
             print(f"  • {s.slug:<12} {s.description}{env_hint}")
         print()
-        print("Install with:  claude-setup mcp " + " ".join(f"--server {s.slug}" for s in suggestions))
+        print("Install with:  aiolos mcp " + " ".join(f"--server {s.slug}" for s in suggestions))
         return
 
     if args.clear:

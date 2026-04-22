@@ -191,7 +191,7 @@ def fetch_from_skills_sh(
 
     if shutil.which(SKILLS_CLI) is None:
         raise RuntimeError(
-            f"{SKILLS_CLI!r} is not on PATH. Install Node.js to use `claude-setup fetch`."
+            f"{SKILLS_CLI!r} is not on PATH. Install Node.js to use `aiolos fetch`."
         )
 
     if not skill_names:

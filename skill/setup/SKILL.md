@@ -3,14 +3,14 @@
 name: setup
 description: ALWAYS invoke this skill when the user opens an unconfigured project and says "set up Claude", "configure skills", or runs /setup. Detects the stack, enables matching Claude Code built-in agents, fetches real skills from trusted sources on the user's trust.toml allowlist — and does nothing more. Does NOT ship skill content.
 disable-model-invocation: false
-allowed-tools: Bash(claude-setup:*) Bash(command -v:*) Bash(cat:*) Bash(ls:*) Bash(find:*) Read Write
+allowed-tools: Bash(aiolos:*) Bash(command -v:*) Bash(cat:*) Bash(ls:*) Bash(find:*) Read Write
 ---
 
 # /setup — Project configurator
 
-This skill delegates to the `claude-setup` CLI.
+This skill delegates to the `aiolos` CLI.
 
-claude-setup does not ship skill or agent content. It provides:
+aiolos does not ship skill or agent content. It provides:
 
 1. **Stack detection** — which Claude Code built-in agents fit this repo.
 2. **Fetch routing** — pulls real skills from trusted authors (trust.toml
@@ -26,18 +26,18 @@ Never fabricate skill content inside this skill.
 ## Step 1 — Preflight
 
 ```bash
-command -v claude-setup >/dev/null || echo "NOT_INSTALLED"
+command -v aiolos >/dev/null || echo "NOT_INSTALLED"
 ```
 
-If `NOT_INSTALLED`, tell the user to run `uv tool install claude-setup`
-(or `pip install --user claude-setup`). Stop.
+If `NOT_INSTALLED`, tell the user to run `uv tool install aiolos`
+(or `pip install --user aiolos`). Stop.
 
 ---
 
 ## Step 2 — One-shot init
 
 ```bash
-claude-setup init --project . --json
+aiolos init --project . --json
 ```
 
 The JSON describes:
@@ -65,8 +65,8 @@ Fetched       : <fetched>          (from trusted sources)
 
 Next:
   • /skills                 verify what's active
-  • claude-setup harden     baseline deny rules + hooks
-  • claude-setup tools      wrap your authenticated CLIs
+  • aiolos harden     baseline deny rules + hooks
+  • aiolos tools      wrap your authenticated CLIs
 ```
 
 ---
@@ -74,7 +74,7 @@ Next:
 ## Hard rules
 
 - Never invent skill content. If the user wants a new skill, use
-  `claude-setup new-skill` to scaffold — it enforces the SKILL.md
+  `aiolos new-skill` to scaffold — it enforces the SKILL.md
   conventions and prompts for a real imperative description.
 - Never claim auditor / specialist expertise. Refer the user to the
   canonical source (Trail of Bits, Spearbit, the protocol's own team).

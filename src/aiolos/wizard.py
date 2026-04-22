@@ -1,6 +1,6 @@
 """The grand opening sequence.
 
-`claude-setup wizard` runs init + harden + tools in one flow, with an optional
+`aiolos wizard` runs init + harden + tools in one flow, with an optional
 techno-ish kick pattern at the start. No audio files are bundled; we synthesise
 kicks via `sox` when it's installed, and fall back to the system sounds that
 ship with macOS or to the plain terminal bell on Linux. Fully silent if the
@@ -101,7 +101,7 @@ def _ask(prompt: str, default: bool) -> bool:
 
 
 def run_wizard(project: Path, noninteractive: bool = False) -> dict:
-    """Entry point for `claude-setup wizard`.
+    """Entry point for `aiolos wizard`.
 
     Returns a small summary dict for tests. Side-effects: prints banner,
     optionally plays sound, and runs the init + harden + tools closing note.
@@ -125,21 +125,21 @@ def run_wizard(project: Path, noninteractive: bool = False) -> dict:
     # init
     init_args = parser.parse_args(["init", "--project", str(project)])
     from .cli import cmd_init, cmd_harden, cmd_tools
-    print("\n— step 1/3  claude-setup init —\n")
+    print("\n— step 1/3  aiolos init —\n")
     cmd_init(init_args)
     summary["steps"].append("init")
 
     # harden (defaults, no questions — wizard is about speed; user can re-run harden interactively later)
-    print("\n— step 2/3  claude-setup harden --defaults —\n")
+    print("\n— step 2/3  aiolos harden --defaults —\n")
     harden_args = parser.parse_args(["harden", "--project", str(project), "--defaults"])
     cmd_harden(harden_args)
     summary["steps"].append("harden")
 
     # tools (show what's wrappable)
-    print("\n— step 3/3  claude-setup tools —\n")
+    print("\n— step 3/3  aiolos tools —\n")
     tools_args = parser.parse_args(["tools", "--project", str(project)])
     cmd_tools(tools_args)
     summary["steps"].append("tools")
 
-    print("\nDone. Run `claude-setup harden` (no --defaults) later to pick hooks.")
+    print("\nDone. Run `aiolos harden` (no --defaults) later to pick hooks.")
     return summary

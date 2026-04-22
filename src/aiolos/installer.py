@@ -16,8 +16,8 @@ from .config import (
 )
 from .library import get_preset_items
 
-GITIGNORE_MARKER_START = "# managed-by: claude-setup (personal symlinks)"
-GITIGNORE_MARKER_END = "# end claude-setup"
+GITIGNORE_MARKER_START = "# managed-by: aiolos (personal symlinks)"
+GITIGNORE_MARKER_END = "# end aiolos"
 
 
 def _is_git_repo(project_path: Path) -> bool:
@@ -155,7 +155,7 @@ def install_to_project(
     fetch = list(dict.fromkeys(fetch))
 
     # Fetched skills (format: "owner/repo#skill-name") → pull into library first,
-    # then install like any other library skill. This is how claude-setup ships:
+    # then install like any other library skill. This is how aiolos ships:
     # we don't vendor skill content, we route you to the real author's repo.
     fetched_names: list[str] = []
     fetch_errors: list[str] = []
@@ -246,7 +246,7 @@ def install_to_project(
                 verb = "Symlinked" if actual == "symlink" else "Copied"
                 print(f"  ✓ {verb} skill '{name}' → {dest}")
 
-    # Agents. claude-setup does not ship agent content. A preset's `agents = [...]`
+    # Agents. aiolos does not ship agent content. A preset's `agents = [...]`
     # list references Claude Code's built-in agents by name — we don't install
     # them (they already ship with Claude Code) but we record them so the
     # summary shows what's active for this stack.

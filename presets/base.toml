@@ -1,11 +1,11 @@
 # Base preset.
-# claude-setup does NOT ship skill content. Presets describe:
+# aiolos does NOT ship skill content. Presets describe:
 #   1. which Claude Code built-in agents to enable for this stack
 #   2. where (from trusted sources) to fetch community skills
-#   3. which installed CLIs to wrap (separately, via `claude-setup tools`)
+#   3. which installed CLIs to wrap (separately, via `aiolos tools`)
 #
 # Built-in agents ship with Claude Code. Listing them here is a pointer, not
-# an install — `claude-setup install` just writes a reference. The community
+# an install — `aiolos install` just writes a reference. The community
 # skills in [fetch] are pulled from the authors you trust in trust.toml.
 
 agents = [

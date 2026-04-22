@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>aiolos — the routing god for your Claude Code repo</title>
-  <meta name="description" content="aiolos detects your stack, wires MCP servers without touching secrets, and blocks Claude from reading SSH/AWS keys — in 30 seconds, for any repo. Installs as claude-setup.">
+  <meta name="description" content="aiolos detects your stack, wires MCP servers without touching secrets, and blocks Claude from reading SSH/AWS keys — in 30 seconds, for any repo. Installs as aiolos.">
   <meta property="og:title" content="aiolos — one command to make Claude Code fit your repo">
   <meta property="og:description" content="Routes agents, skills, MCP servers, and harden rules into .claude/ — without shipping content of its own.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%23141210'/%3E%3C/svg%3E">
@@ -27,8 +27,8 @@
         </p>
 
         <div class="cta">
-          <pre class="install"><code>uv tool install claude-setup
-claude-setup wizard</code></pre>
+          <pre class="install"><code>uv tool install aiolos
+aiolos wizard</code></pre>
           <p class="cta-meta">
             Works on fresh Next.js apps and ten-year-old monorepos.
             <span class="sep">·</span>
@@ -52,7 +52,7 @@ claude-setup wizard</code></pre>
 
       <!-- ── Diagram (the payoff) ────────────────────────────────────── -->
       <section class="diagram-section">
-        <h2 class="diagram-heading">What runs when you type <code>claude-setup wizard</code></h2>
+        <h2 class="diagram-heading">What runs when you type <code>aiolos wizard</code></h2>
 
         <svg class="diagram" viewBox="0 0 960 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow: repo to .claude via detect, preset, fetch">
           <defs>
@@ -135,7 +135,7 @@ claude-setup wizard</code></pre>
       <!-- ── What it writes ──────────────────────────────────────────── -->
       <section class="prose">
         <h2>What it writes into your repo</h2>
-        <p>A Next.js repo with Postgres, after <code>claude-setup wizard</code>:</p>
+        <p>A Next.js repo with Postgres, after <code>aiolos wizard</code>:</p>
 
         <pre><code><span class="comment"># .mcp.json — committed, only ${VAR} placeholders</span>
 {
@@ -234,13 +234,13 @@ DATABASE_URL=
       <footer class="foot">
         <hr>
         <p>
-          <span class="foot-left">aiolos · installs as <code>claude-setup</code> · MIT</span>
+          <span class="foot-left">aiolos · installs as <code>aiolos</code> · MIT</span>
           <span class="foot-right">
             <a href="https://github.com/unbrained-labs/aiolos">source</a>
             <span class="sep">·</span>
             <a href="https://github.com/unbrained-labs/aiolos/issues">issues</a>
             <span class="sep">·</span>
-            <a href="https://github.com/unbrained-labs/aiolos/blob/main/src/claude_setup/harden.py">harden rules</a>
+            <a href="https://github.com/unbrained-labs/aiolos/blob/main/src/aiolos/harden.py">harden rules</a>
           </span>
         </p>
       </footer>

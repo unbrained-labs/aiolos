@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "claude-setup"
+name = "aiolos"
 version = "0.2.0"
 description = "Install the right Claude Code skills and subagents into any project from your personal library."
 readme = "README.md"
@@ -20,7 +20,7 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-claude-setup = "claude_setup.cli:main"
+aiolos = "aiolos.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/unbrained-labs/aiolos"
@@ -28,11 +28,11 @@ Source = "https://github.com/unbrained-labs/aiolos"
 Issues = "https://github.com/unbrained-labs/aiolos/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/claude_setup"]
+packages = ["src/aiolos"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "src/claude_setup",
+    "src/aiolos",
     "presets",
     "skill",
     "bootstrap.sh",

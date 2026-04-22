@@ -7,7 +7,7 @@ What this does:
     * Writes a committed `.env.claude.example` listing the env keys the
       `.mcp.json` references.
     * Adds `.env.claude` (the real dotenv, untracked) to `.gitignore`.
-    * Keeps the managed state in a sidecar `.claude/claude-setup.mcp.lock.json`
+    * Keeps the managed state in a sidecar `.claude/aiolos.mcp.lock.json`
       so re-runs merge cleanly and user-authored servers are preserved.
 
 What this does NOT do:
@@ -23,8 +23,8 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-LOCK_FILENAME = "claude-setup.mcp.lock.json"
-MANAGED_MARKER = "managed-by:claude-setup"
+LOCK_FILENAME = "aiolos.mcp.lock.json"
+MANAGED_MARKER = "managed-by:aiolos"
 GITIGNORE_TARGETS = [".env.claude"]
 
 
@@ -213,7 +213,7 @@ def _append_gitignore(project: Path, targets: list[str]) -> bool:
     missing = [t for t in targets if t not in existing.splitlines()]
     if not missing:
         return False
-    block = "\n# added by claude-setup — local Claude Code env\n" + "\n".join(missing) + "\n"
+    block = "\n# added by aiolos — local Claude Code env\n" + "\n".join(missing) + "\n"
     gi.write_text(existing.rstrip() + "\n" + block if existing.strip() else block.lstrip())
     return True
 

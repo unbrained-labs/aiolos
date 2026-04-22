@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from claude_setup.detect import detect_presets
-from claude_setup.installer import install_to_project
-from claude_setup.library import list_presets, list_skills, load_preset
+from aiolos.detect import detect_presets
+from aiolos.installer import install_to_project
+from aiolos.library import list_presets, list_skills, load_preset
 
 
 def test_list_skills_is_namespaced(library: Path) -> None:
@@ -118,7 +118,7 @@ def test_force_symlink_in_git_writes_gitignore(tmp_path: Path, library: Path) ->
     gi = (project / ".claude/.gitignore").read_text()
     assert "skills/commit" in gi
     assert "agents/code-reviewer" in gi
-    assert "managed-by: claude-setup" in gi
+    assert "managed-by: aiolos" in gi
 
 
 def test_gitignore_block_is_updated_on_rerun(tmp_path: Path, library: Path) -> None:
@@ -140,7 +140,7 @@ def test_gitignore_block_is_updated_on_rerun(tmp_path: Path, library: Path) -> N
     )
     gi = (project / ".claude/.gitignore").read_text()
     # both base and nextjs-exclusive entries should live in a single managed block
-    assert gi.count("managed-by: claude-setup") == 1
+    assert gi.count("managed-by: aiolos") == 1
     assert "skills/commit" in gi
     assert "skills/nextjs" in gi
     assert "agents/frontend-developer" in gi
@@ -212,7 +212,7 @@ def test_monorepo_additive_install(tmp_path: Path, library: Path) -> None:
     assert "nextjs" in names
     assert "python" in names
 
-    from claude_setup.detect import pick_presets
+    from aiolos.detect import pick_presets
     selected = pick_presets(matches, additive=True)
     assert set(selected) == {"nextjs", "python"}
 

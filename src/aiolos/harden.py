@@ -15,7 +15,7 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-LOCK_FILENAME = "claude-setup.lock.json"
+LOCK_FILENAME = "aiolos.lock.json"
 MANAGED_BLOCK_VERSION = 1
 
 # --- Permission catalogues ---------------------------------------------------
@@ -105,7 +105,7 @@ HOOK_LOG_TOOL_USE = {
     "event": "PostToolUse",
     "matcher": ".*",
     "command": "jq -nc --arg t \"$(date -Iseconds)\" --arg tool \"$CLAUDE_TOOL_NAME\" '{ts:$t,tool:$tool}' >> .claude/tool-fires.jsonl 2>/dev/null || true",
-    "why": "append-only log of every tool invocation; `claude-setup stats` filters for skill fires",
+    "why": "append-only log of every tool invocation; `aiolos stats` filters for skill fires",
 }
 
 HOOK_DENY_ENV_WRITE = {
@@ -191,14 +191,14 @@ def _tag_hook(h: dict) -> dict:
     """Attach a private `comment` marker so we can recognise our hooks on
     re-runs without polluting settings.json with a vendor-specific top-level
     key (Anthropic adds top-level keys over time; we don't want to collide)."""
-    return {**h, "comment": "managed-by:claude-setup"}
+    return {**h, "comment": "managed-by:aiolos"}
 
 
 def write_settings(project_path: Path, policy: Policy) -> dict:
     """Write `.claude/settings.json` with managed deny + hook blocks.
 
     Preserves user-authored rules (anything we didn't install). The marker of
-    "what we installed last time" lives in a sidecar `.claude/claude-setup.lock.json`,
+    "what we installed last time" lives in a sidecar `.claude/aiolos.lock.json`,
     not in settings.json itself.
     """
     claude_dir = project_path / ".claude"
@@ -238,7 +238,7 @@ def write_settings(project_path: Path, policy: Policy) -> dict:
     existing_hooks = list(existing.get("hooks") or [])
     user_hooks = [
         h for h in existing_hooks
-        if not (isinstance(h, dict) and h.get("comment") == "managed-by:claude-setup")
+        if not (isinstance(h, dict) and h.get("comment") == "managed-by:aiolos")
     ]
     new_hooks = [_tag_hook(h) for h in compile_hooks(policy)]
     existing["hooks"] = user_hooks + new_hooks
