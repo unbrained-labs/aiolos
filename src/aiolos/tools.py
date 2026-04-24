@@ -180,34 +180,55 @@ def scan_as_dict(project: Path, library: Optional[Path] = None) -> list[dict]:
     ]
 
 
-def format_scan(statuses: list[ToolStatus]) -> str:
-    """Human-readable output."""
+def format_scan(statuses: list[ToolStatus], show_all: bool = False) -> str:
+    """Human-readable output.
+
+    By default we only surface CLIs that are *relevant to this repo* — either
+    the repo has a marker file that suggests it, or the CLI is already wrapped
+    in the project. Pass `show_all=True` to also list every installed CLI on
+    PATH that could be wrapped (useful for auditing your global toolbox).
+    """
     lines: list[str] = []
-    missing_wrapper = [s for s in statuses if s.installed and not s.wrapped_by_library]
-    missing_install = [s for s in statuses if s.repo_suggests and not s.installed]
-    available = [s for s in statuses if s.installed and s.wrapped_by_library]
+
+    # "Relevant" = repo signals this tool, OR we already have a wrapper in the project.
+    def _relevant(s: ToolStatus) -> bool:
+        return s.repo_suggests or s.wrapped_in_project
+
+    pool = statuses if show_all else [s for s in statuses if _relevant(s)]
+
+    missing_wrapper = [s for s in pool if s.installed and not s.wrapped_by_library]
+    missing_install = [s for s in pool if s.repo_suggests and not s.installed]
+    available = [s for s in pool if s.installed and s.wrapped_by_library]
 
     if missing_wrapper:
-        lines.append("Installed but not wrapped (big productivity win):")
+        title = ("Installed on your system but not yet wrapped:" if show_all
+                 else "Installed here AND this repo uses them — worth wrapping:")
+        lines.append(title)
+        lines.append("  (a wrapper is a tiny SKILL.md that tells Claude how to drive the CLI)")
         for s in missing_wrapper:
-            lines.append(f"  • {s.tool.command:<10} → scaffold  aiolos new-skill --wraps {s.tool.command}")
-            lines.append(f"    {s.tool.blurb}")
+            why = f"   ({s.repo_suggestion_reasons[0]})" if s.repo_suggests and s.repo_suggestion_reasons else ""
+            lines.append(f"  • {s.tool.command:<10} {s.tool.blurb}{why}")
+            lines.append(f"    scaffold:  aiolos new-skill --wraps {s.tool.command}")
         lines.append("")
 
     if missing_install:
-        lines.append("Suggested by this project but not installed:")
+        lines.append("This repo looks like it needs, but you haven't installed:")
         for s in missing_install:
             reason = s.repo_suggestion_reasons[0] if s.repo_suggestion_reasons else ""
             lines.append(f"  • {s.tool.command:<10} → {s.tool.install_hint}   ({reason})")
         lines.append("")
 
     if available:
-        lines.append("Wrappers available in the library:")
+        lines.append("Wrappers available in your library:")
         for s in available:
-            state = "✓ installed in project" if s.wrapped_in_project else "needs install"
+            state = "✓ active in this project" if s.wrapped_in_project else "available — run `aiolos install`"
             lines.append(f"  • {s.tool.command:<10} → {s.tool.skill_name}   [{state}]")
+        lines.append("")
 
     if not lines:
-        lines.append("No actionable tools found. Everything matched is already wrapped or not installed.")
+        if show_all:
+            lines.append("No actionable tools — everything is either wrapped or not installed.")
+        else:
+            lines.append("No repo-relevant CLIs flagged. Use `aiolos tools --all` to scan your global toolbox.")
 
-    return "\n".join(lines)
+    return "\n".join(lines).rstrip()

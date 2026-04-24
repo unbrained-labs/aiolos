@@ -31,16 +31,17 @@ uv tool install .          # or: pip install --user .
 ./bootstrap.sh             # seeds ~/.claude-library/presets/
 
 cd any-project
-aiolos wizard        # one-shot: init + mcp + harden + tools
+aiolos wizard        # guided tour — asks y/N before every write
 ```
 
-Or step-by-step:
+Or step-by-step (each command shows a plan and asks to confirm):
 
 ```bash
 aiolos init          # detect stack + activate matching built-in agents
+aiolos browse        # pick community skills from anthropics/skills, skills.sh, …
 aiolos mcp           # write .mcp.json with ${VAR} placeholders
-aiolos harden        # permissions.deny baseline in settings.json
-aiolos tools         # scan authenticated CLIs, scaffold wrappers
+aiolos harden        # permissions.deny baseline in settings.json (+ lock file)
+aiolos tools         # scan repo-relevant CLIs, scaffold wrappers
 ```
 
 From inside Claude Code: `/setup`.
@@ -194,22 +195,33 @@ Override with `--copy` or `--symlink`. Forcing `--symlink` inside a git repo wri
 
 ```
 aiolos wizard    [--project PATH] [--noninteractive]
-aiolos init      [--project PATH] [--json] [--copy | --symlink]
+aiolos init      [--project PATH] [--yes] [--json] [--copy | --symlink]
                        [--overwrite] [--dry-run] [--force]
 aiolos install   [--preset P ...] [--skill S ...] [--agent A ...]
-                       [--project PATH] [--copy | --symlink] [--overwrite] [--dry-run]
+                       [--project PATH] [--yes] [--copy | --symlink] [--overwrite] [--dry-run]
+aiolos browse    [--project PATH] [--source SOURCE] [--yes]
 aiolos detect    [--project PATH] [--json] [--install] [--dry-run]
 aiolos remove    [--skill S ...] [--agent A ...] [--project PATH]
 aiolos list      [skills|agents|presets|all]
 aiolos fetch     SOURCE [--skill S ...] [--list] [--yes-unknown-author]
+aiolos mcp       [--project PATH] [--server SLUG ...] [--preset NAME ...]
+                       [--clear] [--dry-run] [--yes]
 
-aiolos tools     [--project PATH] [--json] [--scaffold-all]
-aiolos harden    [--project PATH] [--defaults]
+aiolos tools     [--project PATH] [--json] [--all] [--scaffold-all] [--yes]
+aiolos harden    [--project PATH] [--defaults] [--yes]
 aiolos audit     [PATH]
 aiolos new-skill [NAME] [-d "…"] [--allowed-tools "…"] [--wraps CLI] [--overwrite]
 aiolos new-agent NAME -d "…" [--role ROLE] [--model sonnet|opus|haiku] [--overwrite]
 aiolos lint      [PATH]
 aiolos doctor
+```
+
+Every command that writes files shows a plan and asks for confirmation by
+default. Pass `--yes` (`-y`) to skip the prompt, or `--json` / `--dry-run`
+for automation. `tools` shows repo-relevant CLIs only; use `--all` for your
+full global toolbox.
+
+```
 ```
 
 ---

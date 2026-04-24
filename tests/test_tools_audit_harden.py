@@ -220,9 +220,11 @@ def test_wizard_subcommand_runs_noninteractive(tmp_path: Path, library: Path) ->
         capture_output=True, text=True, env=env, check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert "step 1/3" in result.stdout
-    assert "step 2/3" in result.stdout
-    assert "step 3/3" in result.stdout
+    # Wizard runs 5 steps; noninteractive auto-accepts each.
+    assert "step 1/5" in result.stdout
+    assert "step 3/5" in result.stdout  # harden step
+    assert "step 5/5" in result.stdout
+    # Harden (step 3) should have written settings.json.
     assert (project / ".claude" / "settings.json").exists()
 
 

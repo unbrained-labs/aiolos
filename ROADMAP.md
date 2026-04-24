@@ -11,7 +11,9 @@ here either shipped, is dead, or doesn't have a source.
 - `harden` — `permissions.deny` baseline in `settings.json` + optional hooks (env-write block, prod pause, tool-use log, stop-ding).
 - `tools` — scan PATH for authenticated CLIs + scaffold wrapper skills.
 - `new-skill`, `new-agent`, `lint`, `doctor`, `audit`, `trust.toml`.
-- `wizard` — one-shot pipeline with an optional ASCII-plus-sox intro.
+- `wizard` — 5 gated steps (init → browse → harden → mcp → tools), each shown-then-confirmed.
+- `browse` — interactive picker over trusted sources (anthropics/skills, obra, vercel-labs, skills.sh, custom repos) → fetch → install.
+- Consent model — every writer prints a plan and prompts `[Y/n]` before touching disk. `--yes` / `--json` / `--dry-run` skip.
 - Monorepo-additive preset detection.
 - `/setup` Claude Code skill that delegates to the CLI.
 - Static site at [unbrained-labs.github.io/aiolos](https://unbrained-labs.github.io/aiolos/).
